@@ -1,10 +1,11 @@
 'use client';
 
-import { useActionState, useEffect } from 'react';
+import { useActionState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
+import { useSubmitFeedback } from '@/hooks/useSubmitFeedback';
 import { TRANSACTION_TYPES } from '@/lib/constants';
 import {
   createTransactionAction,
@@ -37,11 +38,10 @@ export function TransactionModal({
   const pending = isEdit ? editing : creating;
   const state = isEdit ? editState : createState;
 
-  useEffect(() => {
-    if (!state.ok || pending) return;
+  useSubmitFeedback(state, pending, () => {
     onClose();
     show({ tone: 'success', message: isEdit ? 'Transaction updated.' : 'Transaction added.' });
-  }, [state.ok, pending, isEdit, onClose, show]);
+  });
 
   return (
     <Modal

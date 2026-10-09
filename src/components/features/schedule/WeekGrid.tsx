@@ -1,17 +1,10 @@
 'use client';
 
-import { CLASS_THEMES, WEEKDAYS } from '@/lib/constants';
+import { WEEKDAYS } from '@/lib/constants';
 import { normalizeDay } from '@/lib/utils/date';
+import { classTheme } from '@/lib/utils/schedule';
 import s from './WeekGrid.module.css';
 import type { ScheduleClass } from '@/types/domain';
-
-/** The four tints, cycled in order; the index becomes a modifier class. */
-export function themeIndex(colorTheme: string): number {
-  const idx = CLASS_THEMES.findIndex(
-    (hex) => hex.toLowerCase() === (colorTheme ?? '').trim().toLowerCase(),
-  );
-  return Math.max(0, idx);
-}
 
 export function ClassBlock({
   klass,
@@ -23,7 +16,7 @@ export function ClassBlock({
   return (
     <button
       type="button"
-      className={`${s.block} ${s[`block--theme${themeIndex(klass.color_theme) + 1}`]}`}
+      className={`${s.block} ${classTheme(klass.color_theme)}`}
       onClick={() => onOpen(klass)}
     >
       <span className={s.blockName}>{klass.name}</span>

@@ -7,6 +7,7 @@ import { revalidate, AFFECTS_SCHEDULE } from '@/lib/revalidate';
 import { createId } from '@/lib/utils/id';
 import { currentWeekday, normalizeDay } from '@/lib/utils/date';
 import { CLASS_THEMES } from '@/lib/constants';
+import { getUserTimezone } from '@/lib/timezone.server';
 import type { ScheduleClass } from '@/types/domain';
 
 const TABLE = 'schedule_classes' as const;
@@ -127,9 +128,13 @@ export function nextColorTheme(existing: string[]): string {
   return CLASS_THEMES[counts.indexOf(min)];
 }
 
-/** The dashboard's "Today's classes"; empty on the weekend by design. */
+/**
+ * The dashboard's "Today's classes"; empty on the weekend by design. Uses the
+ * user's timezone, so a UTC server cannot disagree with the user's browser
+ * about which day it is.
+ */
 export async function listTodaysClasses(userId: string): Promise<ScheduleClass[]> {
-  const today = currentWeekday();
+  const today = currentWeekday(await getUserTimezone());
   if (!today) return [];
 
   const classes = await listClasses(userId);

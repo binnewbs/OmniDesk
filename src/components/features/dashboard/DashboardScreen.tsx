@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ClipboardList, Plus, Receipt, StickyNote, Wallet } from 'lucide-react';
+import { Calendar, ClipboardList, Receipt, Repeat, StickyNote, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { PageHeader } from '@/components/shell/PageHeader';
 import { GlobalSearch } from '@/components/shell/GlobalSearch';
 import { Button } from '@/components/ui/Button';
@@ -10,11 +10,12 @@ import { Card } from '@/components/ui/Card';
 import { StatCard } from '@/components/ui/StatCard';
 import { Pill } from '@/components/ui/Pill';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { SkeletonLines } from '@/components/ui/Skeleton';
 import { QuickAddModal, type QuickAddKind } from './QuickAddModal';
-import { formatDate, normalizeDay } from '@/lib/utils/date';
+import { formatCalendarDate, normalizeDay } from '@/lib/utils/date';
+import { classTheme } from '@/lib/utils/schedule';
 import { formatAmount, formatMoney, toNumber } from '@/lib/utils/money';
-import { relativeFromEpochMs } from '@/lib/utils/date';
+import { relativeInZone } from '@/lib/timezone';
+import { useUserTimezone } from '@/hooks/useUserTimezone';
 import type {
   Assignment,
   DashboardStats,
@@ -44,6 +45,7 @@ export function DashboardScreen({
   currency,
 }: DashboardScreenProps) {
   const router = useRouter();
+  const timezone = useUserTimezone();
   const [quickAdd, setQuickAdd] = useState<QuickAddKind | null>(null);
 
   const refresh = () => router.refresh();
@@ -69,7 +71,7 @@ export function DashboardScreen({
         actions={
           <>
             <GlobalSearch />
-            <Button variant="primary" iconLeft={Plus} onClick={() => setQuickAdd('chooser')}>
+            <Button variant="primary" onClick={() => setQuickAdd('chooser')}>
               + Quick add
             </Button>
           </>
@@ -78,19 +80,23 @@ export function DashboardScreen({
 
       <div className="grid grid--4">
         <StatCard
+          icon={Wallet}
           label={`Balance (${currency})`}
           value={formatMoney(stats.balance, currency)}
           hint="income − expenses"
         />
         <StatCard
+          icon={TrendingUp}
           label="Income this month"
           value={formatMoney(stats.incomeThisMonth, currency)}
         />
         <StatCard
+          icon={TrendingDown}
           label="Expenses this month"
           value={formatMoney(stats.expensesThisMonth, currency)}
         />
         <StatCard
+          icon={Repeat}
           label="Subscriptions / month"
           value={formatMoney(stats.subscriptionsPerMonth, currency)}
           hint="from subscriptions"
@@ -99,7 +105,11 @@ export function DashboardScreen({
 
       <div className={s.twoByTwo}>
         {/* 1. Upcoming assignments */}
-        <Card action={{ href: '/assignments', label: 'View all' }} title="Upcoming assignments">
+        <Card
+          icon={ClipboardList}
+          action={{ href: '/assignments', label: 'View all' }}
+          title="Upcoming assignments"
+        >
           {assignments.length === 0 ? (
             <EmptyState icon={ClipboardList} title="No assignments yet" />
           ) : (
@@ -108,7 +118,7 @@ export function DashboardScreen({
                 <span className="rowItem__text">
                   <span className="rowItem__title">{a.title}</span>
                   <span className="rowItem__meta">
-                    {a.course} · {formatDate(a.due_date)}
+                    {a.course} · {formatCalendarDate(a.due_date)}
                   </span>
                 </span>
                 <Pill>{a.priority ?? 'Medium'}</Pill>
@@ -118,27 +128,27 @@ export function DashboardScreen({
         </Card>
 
         {/* 2. Today's classes */}
-        <Card action={{ href: '/schedule', label: 'Schedule' }} title="Today's classes">
+        <Card icon={Calendar} action={{ href: '/schedule', label: 'Schedule' }} title="Today's classes">
           {classes.length === 0 ? (
-            <EmptyState icon={Wallet} title="No classes today" hint="Enjoy the day off." />
+            <EmptyState icon={Calendar} title="No classes today" hint="Enjoy the day off." />
           ) : (
             classes.map((c) => (
-              <div key={c.id} className="rowItem">
-                <span className="rowItem__text">
-                  <span className="rowItem__title">{c.name}</span>
-                  <span className="rowItem__meta">
-                    {c.start_time} – {c.end_time}
-                    {c.room ? ` · ${c.room}` : ''}
-                  </span>
+              <div key={c.id} className={`${s.classBlock} ${classTheme(c.color_theme)}`}>
+                <span className={s.classBlockTop}>
+                  <span className={s.classBlockName}>{c.name}</span>
+                  <Pill>{normalizeDay(c.day) ?? c.day}</Pill>
                 </span>
-                <Pill>{normalizeDay(c.day) ?? c.day}</Pill>
+                <span className={s.classBlockMeta}>
+                  {c.start_time} – {c.end_time}
+                  {c.room ? ` · ${c.room}` : ''}
+                </span>
               </div>
             ))
           )}
         </Card>
 
         {/* 3. Recent transactions */}
-        <Card action={{ href: '/cashflow', label: 'Cashflow' }} title="Recent transactions">
+        <Card icon={Receipt} action={{ href: '/cashflow', label: 'Cashflow' }} title="Recent transactions">
           {transactions.length === 0 ? (
             <EmptyState icon={Receipt} title="No transactions yet" />
           ) : (
@@ -147,7 +157,7 @@ export function DashboardScreen({
                 <span className="rowItem__text">
                   <span className="rowItem__title">{t.description || t.category}</span>
                   <span className="rowItem__meta">
-                    {t.category} · {formatDate(t.date)}
+                    {t.category} · {formatCalendarDate(t.date)}
                   </span>
                 </span>
                 <Pill tone={t.type === 'income' ? 'accent' : 'default'}>
@@ -159,7 +169,7 @@ export function DashboardScreen({
         </Card>
 
         {/* 4. Pinned notes */}
-        <Card action={{ href: '/notes', label: 'Notes' }} title="Pinned notes">
+        <Card icon={StickyNote} action={{ href: '/notes', label: 'Notes' }} title="Pinned notes">
           {notes.length === 0 ? (
             <EmptyState icon={StickyNote} title="Nothing pinned" hint="Pin a note to see it here." />
           ) : (
@@ -168,7 +178,11 @@ export function DashboardScreen({
               return (
                 <div key={note.id} className={s.notePreview}>
                   <span className={s.noteTitle}>{preview?.title}</span>
-                  {preview?.body.length ? (
+
+                  {/* Body lines are real text. A note that is only a title has
+                      none, and showing skeleton bars for it made every
+                      dashboard look permanently loading. */}
+                  {preview && preview.body.length > 0 && (
                     <span className={s.noteBody}>
                       {preview.body.map((line, j) => (
                         <span key={j} className={s.noteLine}>
@@ -176,11 +190,10 @@ export function DashboardScreen({
                         </span>
                       ))}
                     </span>
-                  ) : (
-                    <SkeletonLines />
                   )}
+
                   <span className="t-muted">
-                    Last modified {relativeFromEpochMs(note.last_modified)}
+                    Last modified {relativeInZone(note.last_modified, timezone)}
                   </span>
                 </div>
               );

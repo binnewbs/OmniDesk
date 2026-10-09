@@ -8,6 +8,8 @@ import { listSubscriptions } from '@/lib/repositories/subscriptions';
 import { listTodaysClasses } from '@/lib/repositories/schedule';
 import { listNotes } from '@/lib/repositories/notes';
 import { getSettings } from '@/lib/repositories/settings';
+import { startOfMonthInZone } from '@/lib/timezone';
+import { getUserTimezone } from '@/lib/timezone.server';
 import type {
   Assignment,
   DashboardStats,
@@ -24,9 +26,10 @@ import type {
 export async function getDashboardStats(userId: string): Promise<DashboardStats> {
   const { supabase } = await requireContext();
 
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthStartISO = monthStart.toISOString();
+  // "This month" is the user's calendar month, not the server's: a UTC server
+  // would otherwise disagree with the user's browser about where the month
+  // starts, which matters on the 1st and across year boundaries.
+  const monthStartISO = startOfMonthInZone(new Date(), await getUserTimezone()).toISOString();
 
   const [allTime, month, subs] = await Promise.all([
     supabase

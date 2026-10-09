@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus } from 'lucide-react';
 import { PageHeader } from '@/components/shell/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { StatCard } from '@/components/ui/StatCard';
@@ -23,6 +22,7 @@ import { SubscriptionsList } from './SubscriptionsList';
 import { TransactionModal } from './TransactionModal';
 import { SubscriptionModal } from './SubscriptionModal';
 import { CurrencySelect } from './CurrencySelect';
+import s from './CashflowScreen.module.css';
 import type { Subscription, Transaction } from '@/types/domain';
 
 interface CashflowScreenProps {
@@ -136,11 +136,10 @@ export function CashflowScreen({
         title="Cashflow"
         subtitle="Transactions and recurring subscriptions"
         actions={
-          <>
+          <div className={s.headerControls}>
             <CurrencySelect value={currency} onChange={onCurrencyChange} />
             <Button
               variant="primary"
-              iconLeft={Plus}
               onClick={() => {
                 setTransaction(null);
                 setModalOpen(true);
@@ -148,7 +147,7 @@ export function CashflowScreen({
             >
               + Transaction
             </Button>
-          </>
+          </div>
         }
       />
 
@@ -196,17 +195,14 @@ export function CashflowScreen({
         />
       </div>
 
-      <TransactionModal
-        open={modalOpen}
-        onClose={closeModals}
-        transaction={transaction}
-      />
+      {/* Rendered only while open so a previous success cannot re-fire on reopen. */}
+      {modalOpen && (
+        <TransactionModal open onClose={closeModals} transaction={transaction} />
+      )}
 
-      <SubscriptionModal
-        open={subOpen}
-        onClose={closeModals}
-        subscription={subscription}
-      />
+      {subOpen && (
+        <SubscriptionModal open onClose={closeModals} subscription={subscription} />
+      )}
     </main>
   );
 }

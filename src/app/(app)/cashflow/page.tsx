@@ -5,6 +5,8 @@ import { listSubscriptions } from '@/lib/repositories/subscriptions';
 import { getSettings } from '@/lib/repositories/settings';
 import { CashflowScreen } from '@/components/features/cashflow/CashflowScreen';
 import { toNumber } from '@/lib/utils/money';
+import { isInCurrentMonthInZone } from '@/lib/timezone';
+import { getUserTimezone } from '@/lib/timezone.server';
 import type { Transaction, TransactionType } from '@/types/domain';
 
 export const metadata: Metadata = { title: 'Cashflow — Productivity Manager' };
@@ -22,13 +24,10 @@ export default async function CashflowPage() {
     getSettings(),
   ]);
 
-  // "This month" is the user's local calendar month (PLAN.md §13.2).
-  const now = new Date();
-  const inThisMonth = (iso: string) => {
-    const d = new Date(iso);
-    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-  };
-  const monthRows = transactions.filter((t) => inThisMonth(t.date));
+  // "This month" is the user's calendar month (PLAN.md §13.2). The server may
+  // run in UTC, so the zone comes from the `tz` cookie rather than from here.
+  const timezone = await getUserTimezone();
+  const monthRows = transactions.filter((t) => isInCurrentMonthInZone(t.date, timezone));
 
   const income = totalFor(transactions, 'income');
   const expenses = totalFor(transactions, 'expense');

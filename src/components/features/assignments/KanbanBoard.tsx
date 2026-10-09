@@ -4,7 +4,7 @@ import { DndContext, DragOverlay, KeyboardSensor, PointerSensor, useSensor, useS
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { useState } from 'react';
 import { ASSIGNMENT_STATUSES } from '@/lib/constants';
-import { normalizeStatus } from '@/lib/utils/assignment';
+import { normalizeStatus, resolveDropStatus } from '@/lib/utils/assignment';
 import { changeAssignmentStatusAction } from '@/lib/actions/assignments';
 import { useToast } from '@/components/ui/Toast';
 import { KanbanColumn, AssignmentCard } from './KanbanColumn';
@@ -51,9 +51,10 @@ export function KanbanBoard({ assignments, onChange, onOpen }: KanbanBoardProps)
 
     const id = String(dragged.id);
     const from = statusOf(id);
-    // Dropping on a card inside a column means "move into that column".
-    const overId = String(over.id);
-    const to = (overId in ASSIGNMENT_STATUSES ? overId : statusOf(overId)) as AssignmentStatus | null;
+
+    // Dropping on a card moves it into that card's column; dropping on the
+    // column itself (an empty one, or its header) moves it there directly.
+    const to = resolveDropStatus(over.id, statusOf);
 
     if (!from || !to || from === to) return;
 
@@ -88,7 +89,7 @@ export function KanbanBoard({ assignments, onChange, onOpen }: KanbanBoardProps)
       </div>
 
       <DragOverlay>
-        {active ? <AssignmentCard assignment={active} overlay /> : null}
+        {active ? <AssignmentCard assignment={active} overlay draggable={false} /> : null}
       </DragOverlay>
     </DndContext>
   );

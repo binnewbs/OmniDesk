@@ -1,0 +1,19 @@
+
+/*
+ * The currency control carries a label above it, so it is taller than the
+ * button beside it. The page header centres its actions as a group, which left
+ * the button floating between the label and the select. Aligning the two
+ * controls on their bottom edge lines them up while the label stays on top.
+ */
+.headerControls {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+@media (max-width: 768px) {
+  .headerControls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

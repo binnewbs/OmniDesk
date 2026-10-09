@@ -5,7 +5,7 @@ import { ArrowDown, ArrowUp, Receipt, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Chip, Pill } from '@/components/ui/Pill';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { formatDate } from '@/lib/utils/date';
+import { formatCalendarDate } from '@/lib/utils/date';
 import { formatAmount, toNumber } from '@/lib/utils/money';
 import type { Transaction, TransactionType } from '@/types/domain';
 import s from './TransactionsTable.module.css';
@@ -112,7 +112,7 @@ export function TransactionsTable({
                       onClick={() => onOpen(t)}
                       aria-label={`Edit ${t.description || t.category}`}
                     >
-                      {formatDate(t.date)}
+                      {formatCalendarDate(t.date)}
                     </button>
                   </td>
                   <td className={s.description}>{t.description || '—'}</td>

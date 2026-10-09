@@ -6,6 +6,12 @@
 .sidebar {
   width: var(--sidebar-w);
   flex-shrink: 0;
+  /* Stretches to the shell's full height, so the footer stays pinned to the
+     bottom of the screen instead of the bottom of the content. */
+  height: 100%;
+  min-height: 0;
+  /* Only scrolls if the nav genuinely overflows a very short viewport. */
+  overflow-y: auto;
   border-right: 1px solid var(--border);
   padding: var(--space-6) var(--space-4);
   display: flex;

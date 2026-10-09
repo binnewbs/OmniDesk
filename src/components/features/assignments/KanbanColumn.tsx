@@ -1,10 +1,10 @@
 'use client';
 
 import { useDroppable } from '@dnd-kit/core';
-import { useSortable } from '@dnd-kit/sortable';
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Pill } from '@/components/ui/Pill';
-import { formatDate, parseDateSafe } from '@/lib/utils/date';
+import { formatCalendarDate, parseDateSafe } from '@/lib/utils/date';
 import s from './Kanban.module.css';
 import type { Assignment, AssignmentStatus } from '@/types/domain';
 
@@ -60,7 +60,7 @@ export function AssignmentCard({
 
       <div className={s.cardFooter}>
         <span className={`${s.cardDue} ${overdue ? s.cardDueOverdue : ''}`}>
-          {formatDate(assignment.due_date)}
+          {formatCalendarDate(assignment.due_date)}
         </span>
         <Pill>{assignment.priority ?? 'Medium'}</Pill>
       </div>
@@ -100,9 +100,16 @@ export function KanbanColumn({
       {assignments.length === 0 ? (
         <p className={s.empty}>Nothing here yet</p>
       ) : (
-        assignments.map((assignment) => (
-          <AssignmentCard key={assignment.id} assignment={assignment} onOpen={onOpen} />
-        ))
+        // Without this context, sortableKeyboardCoordinates cannot find the
+        // neighbouring column, so keyboard dragging is confined to one column.
+        <SortableContext
+          items={assignments.map((a) => a.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {assignments.map((assignment) => (
+            <AssignmentCard key={assignment.id} assignment={assignment} onOpen={onOpen} />
+          ))}
+        </SortableContext>
       )}
     </section>
   );

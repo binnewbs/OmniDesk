@@ -24,3 +24,27 @@ export function normalizePriority(raw: string | null | undefined): string {
   );
   return match ?? ASSIGNMENT_PRIORITIES[1]; // Medium
 }
+
+/**
+ * Works out which column a drop should land in.
+ *
+ * dnd-kit reports whatever is under the pointer: either a column's own droppable
+ * (whose id is a status) or a card inside one (whose id is an assignment id).
+ * Both have to resolve, or dropping onto an empty column — the common case —
+ * silently does nothing.
+ *
+ * This uses `.includes`, deliberately: `overId in ASSIGNMENT_STATUSES` would
+ * test for array *indices*, so it is false for every status string.
+ */
+export function resolveDropStatus(
+  overId: string | number,
+  statusOf: (assignmentId: string) => AssignmentStatus | null,
+): AssignmentStatus | null {
+  const asStatus = String(overId);
+
+  if ((ASSIGNMENT_STATUSES as readonly string[]).includes(asStatus)) {
+    return asStatus as AssignmentStatus;
+  }
+
+  return statusOf(asStatus);
+}

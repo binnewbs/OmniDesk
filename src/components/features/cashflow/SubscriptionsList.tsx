@@ -5,7 +5,9 @@ import { Card } from '@/components/ui/Card';
 import { Pill } from '@/components/ui/Pill';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
-import { formatDate } from '@/lib/utils/date';
+import { formatCalendarDate } from '@/lib/utils/date';
+import { formatInstantInZone } from '@/lib/timezone';
+import { useUserTimezone } from '@/hooks/useUserTimezone';
 import { toNumber } from '@/lib/utils/money';
 import type { Subscription } from '@/types/domain';
 import s from './SubscriptionsList.module.css';
@@ -27,6 +29,8 @@ export function SubscriptionsList({
   onDelete,
   onProcess,
 }: SubscriptionsListProps) {
+  const timezone = useUserTimezone();
+
   return (
     <Card
       header={
@@ -56,8 +60,8 @@ export function SubscriptionsList({
                       {sub.category}
                       {' · '}
                       {sub.last_processed
-                        ? `last processed ${formatDate(sub.last_processed)}`
-                        : `started ${formatDate(sub.start_date)}`}
+                        ? `last processed ${formatInstantInZone(sub.last_processed, timezone)}`
+                        : `started ${formatCalendarDate(sub.start_date)}`}
                     </span>
                   </span>
                   <Pill>{toNumber(sub.amount).toLocaleString('en-US')}</Pill>

@@ -6,6 +6,7 @@ import { RepositoryError } from '@/lib/supabase/errors';
 import {
   createFolder,
   createNote,
+  getNote,
   moveNote,
   purgeNote,
   restoreFolder,
@@ -148,6 +149,35 @@ export async function moveNoteToFolderAction(id: string, folderId: string | null
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) return { ok: false, message: FAIL };
+    throw error;
+  }
+}
+
+/**
+ * Fetches a single note for the editor, used when a search result is opened
+ * from the Notes header rather than from the grid.
+ */
+export async function getNoteForEditorAction(
+  id: string,
+): Promise<{ ok: boolean; note?: Note; message?: string }> {
+  try {
+    const user = await requireUserOrThrow();
+    const note = await getNote(user.id, id);
+    if (!note) return { ok: false, message: 'That note no longer exists.' };
+
+    return {
+      ok: true,
+      note: {
+        ...note,
+        // The int8 columns can be null on a hand-written row.
+        last_modified: note.last_modified ?? Date.now(),
+        created_at: note.created_at ?? Date.now(),
+      },
+    };
+  } catch (error) {
+    if (error instanceof RepositoryError) {
+      return { ok: false, message: 'Could not open that note.' };
+    }
     throw error;
   }
 }

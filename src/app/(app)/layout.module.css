@@ -1,9 +1,23 @@
+/*
+ * The shell owns the viewport. Without this the whole document scrolls, so the
+ * sidebar scrolls out of view along with the content — and it is the *content*
+ * that should move, not the navigation.
+ *
+ * A fixed height plus `overflow: hidden` here makes `.main` the only scroll
+ * container. Scoped to this layout on purpose: the auth screens are a separate
+ * layout and still scroll the page normally.
+ */
 .shell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh; /* ignores mobile browser chrome, so the sidebar never overshoots */
+  overflow: hidden;
 }
 
 .main {
   flex: 1;
   min-width: 0; /* stops a wide table from breaking the grid */
+  overflow-y: auto;
+  /* Stops the scroll chain from bubbling to the document once .main hits its end. */
+  overscroll-behavior: contain;
 }

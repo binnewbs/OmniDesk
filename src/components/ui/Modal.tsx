@@ -3,6 +3,7 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import { useMounted } from '@/hooks/useMounted';
 import s from './Modal.module.css';
 
 interface ModalProps {
@@ -31,6 +32,16 @@ export function Modal({
 }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  const mounted = useMounted();
+
+  // Callers pass an inline arrow, so `onClose` is a new function on every
+  // render. Holding it in a ref keeps it out of the effect below: as a
+  // dependency it made the effect re-run on every keystroke in a controlled
+  // input, and each re-run stole focus back to the dialog.
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -41,25 +52,30 @@ export function Modal({
     document.body.style.overflow = 'hidden';
 
     // Move focus into the dialog so Tab does not walk the page behind it.
-    const focusables = () =>
-      Array.from(
-        panelRef.current?.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-        ) ?? [],
-      ).filter((el) => el.offsetParent !== null);
+    const FOCUSABLE =
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-    const first = focusables()[0];
+    const inScope = (scope: HTMLElement | null | undefined) =>
+      Array.from(scope?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []).filter(
+        (el) => el.offsetParent !== null,
+      );
+
+    // Prefer the body: the close button sits in the header, ahead of the body
+    // in DOM order, so focusing "the first focusable" landed on the X instead
+    // of the field the dialog exists to fill in.
+    const body = panelRef.current?.querySelector<HTMLElement>('[data-modal-body]');
+    const first = inScope(body)[0] ?? inScope(panelRef.current)[0];
     first?.focus();
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.stopPropagation();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== 'Tab') return;
 
-      const items = focusables();
+      const items = inScope(panelRef.current);
       if (items.length === 0) return;
 
       const firstEl = items[0];
@@ -81,9 +97,11 @@ export function Modal({
       document.body.style.overflow = overflow;
       restoreFocusRef.current?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
-  if (!open || typeof document === 'undefined') return null;
+  // `mounted`, not `typeof document`: the document exists during hydration, so a
+  // modal rendered `open` on first paint would mismatch the server's output.
+  if (!open || !mounted) return null;
 
   return createPortal(
     <div className={s.overlay} onMouseDown={onClose}>
@@ -103,7 +121,9 @@ export function Modal({
           </button>
         </header>
 
-        <div className={s.body}>{children}</div>
+        <div className={s.body} data-modal-body>
+          {children}
+        </div>
 
         {footer && <footer className={s.footer}>{footer}</footer>}
       </div>

@@ -5,22 +5,16 @@ import { NotesScreen } from '@/components/features/notes/NotesScreen';
 
 export const metadata: Metadata = { title: 'Notes — Productivity Manager' };
 
-export default async function NotesPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string }>;
-}) {
+export default async function NotesPage() {
   const user = await requireUser();
-  const { q } = await searchParams;
-  const term = (q ?? '').trim();
 
+  // Search runs through the header's Search modal, not a URL filter, so this
+  // fetches the full working set.
   const [notes, trashed, folders] = await Promise.all([
-    listNotes(user.id, { search: term || undefined }),
+    listNotes(user.id),
     listNotes(user.id, { trashed: true }),
     listFolders(user.id),
   ]);
 
-  return (
-    <NotesScreen notes={notes} trashed={trashed} folders={folders} searchTerm={term} />
-  );
+  return <NotesScreen notes={notes} trashed={trashed} folders={folders} />;
 }

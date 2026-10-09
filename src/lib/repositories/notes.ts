@@ -14,8 +14,6 @@ export interface ListNotesOptions {
   folderId?: string | null;
   pinned?: boolean;
   trashed?: boolean;
-  /** free-text filter over the whole content, used by the notes search */
-  search?: string;
 }
 
 export async function listNotes(userId: string, opts: ListNotesOptions = {}): Promise<Note[]> {
@@ -28,7 +26,6 @@ export async function listNotes(userId: string, opts: ListNotesOptions = {}): Pr
 
   if (opts.folderId) query = query.eq('folder_id', opts.folderId);
   if (typeof opts.pinned === 'boolean') query = query.eq('pinned', opts.pinned);
-  if (opts.search) query = query.ilike('content', `%${opts.search.replace(/[%_]/g, '')}%`);
 
   const { data, error } = await query.order('last_modified', { ascending: false });
   if (error) throw new RepositoryError('notes.list', error);

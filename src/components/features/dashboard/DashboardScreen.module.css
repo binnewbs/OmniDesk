@@ -17,6 +17,10 @@
   border-top: 1px solid var(--row-divider);
 }
 .notePreview:first-child { border-top: none; padding-top: 0; }
+/* `:global` is required: CSS Modules rewrites a bare `.card__header` in this
+   file into a hashed name that matches no element in the DOM. The header is a
+   global primitive, so it has to be referenced as one. */
+:global(.card__header) + .notePreview { border-top: none; padding-top: 0; }
 
 .noteTitle {
   font-size: var(--text-base);
@@ -29,16 +33,21 @@
   gap: 6px;
 }
 
+/*
+ * These are real note lines, not placeholders. An earlier version painted them
+ * on a --skeleton bar, so a note with a body read as a permanent loading state;
+ * and a note that is only a title fell back to literal skeleton bars. The
+ * varying widths below reproduce the reference's shape without pretending to
+ * be loading.
+ */
 .noteLine {
-  height: 10px;
-  border-radius: var(--radius-full);
-  background: var(--skeleton);
+  min-height: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--muted);
   font-size: var(--text-muted);
-  line-height: 10px;
+  line-height: 1.45;
 }
 
 .noteLine:nth-child(1) { width: 92%; }
@@ -51,4 +60,40 @@
 
 @media (max-width: 768px) {
   .twoByTwo { grid-template-columns: 1fr; }
+}
+/*
+ * A class in "Today's classes", tinted from its colour_theme exactly as on the
+ * Schedule page. Layout only — the colours come from the shared global
+ * `.tint--themeN` modifiers, so both screens stay in step.
+ */
+.classBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3);
+  border-radius: var(--radius-input);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.classBlock + .classBlock { margin-top: var(--space-3); }
+
+.classBlockTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.classBlockName {
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: 1.3;
+  min-width: 0;
+}
+
+.classBlockMeta {
+  font-size: var(--text-muted);
+  line-height: 1.3;
 }

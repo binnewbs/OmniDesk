@@ -9,6 +9,8 @@ import { Select } from '@/components/ui/Field';
 import { useToast } from '@/components/ui/Toast';
 import { WEEKDAYS } from '@/lib/constants';
 import { currentWeekday, normalizeDay } from '@/lib/utils/date';
+import { useUserTimezone } from '@/hooks/useUserTimezone';
+import { useMounted } from '@/hooks/useMounted';
 import { deleteClassAction, undoDeleteClassAction } from '@/lib/actions/cashflow';
 import { WeekGrid, DayGrid } from './WeekGrid';
 import { ClassModal } from './ClassModal';
@@ -21,9 +23,14 @@ export function ScheduleScreen({ classes }: { classes: ScheduleClass[] }) {
   const router = useRouter();
   const { show } = useToast();
 
+  const timezone = useUserTimezone();
+  const mounted = useMounted();
   const [mode, setMode] = useState<ViewMode>('week');
   // Defaults to the current weekday; on a weekend there is no column to show.
-  const [day, setDay] = useState<string>(currentWeekday() ?? WEEKDAYS[0]);
+  // null means "not chosen yet", so the default is derived from the user's zone
+  // rather than frozen at mount.
+  const [day, setDay] = useState<string | null>(null);
+  const activeDay = day ?? (mounted ? (currentWeekday(timezone) ?? WEEKDAYS[0]) : WEEKDAYS[0]);
   const [active, setActive] = useState<ScheduleClass | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -50,6 +57,11 @@ export function ScheduleScreen({ classes }: { classes: ScheduleClass[] }) {
   const open = (klass: ScheduleClass) => {
     setActive(klass);
     setModalOpen(true);
+  };
+
+  const onCloseModal = () => {
+    setModalOpen(false);
+    router.refresh();
   };
 
   return (
@@ -83,12 +95,12 @@ export function ScheduleScreen({ classes }: { classes: ScheduleClass[] }) {
           <Select
             label=""
             aria-label="Day of week"
-            value={day}
+            value={activeDay}
             onChange={(e) => setDay(e.target.value)}
             options={WEEKDAYS}
           />
-          {classes.some((c) => normalizeDay(c.day) === day) ? null : (
-            <span className="t-muted">No classes on {day}</span>
+          {classes.some((c) => normalizeDay(c.day) === activeDay) ? null : (
+            <span className="t-muted">No classes on {activeDay}</span>
           )}
         </div>
       )}
@@ -96,19 +108,20 @@ export function ScheduleScreen({ classes }: { classes: ScheduleClass[] }) {
       {mode === 'week' ? (
         <WeekGrid classes={classes} onOpen={open} />
       ) : (
-        <DayGrid classes={classes} day={day} onOpen={open} />
+        <DayGrid classes={classes} day={activeDay} onOpen={open} />
       )}
 
-      <ClassModal
-        open={modalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          router.refresh();
-        }}
-        klass={active}
-        onDelete={active ? onDelete : undefined}
-        deleting={deleting}
-      />
+      {/* Rendered only while open, so useActionState resets between sessions and a
+          previous success cannot fire again on the next open. */}
+      {modalOpen && (
+        <ClassModal
+          open
+          onClose={onCloseModal}
+          klass={active}
+          onDelete={active ? onDelete : undefined}
+          deleting={deleting}
+        />
+      )}
     </main>
   );
 }

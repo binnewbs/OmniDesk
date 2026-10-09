@@ -1,7 +1,8 @@
 import { Trash2 } from 'lucide-react';
 import s from './NoteCard.module.css';
 import { Pill } from '@/components/ui/Pill';
-import { relativeFromEpochMs } from '@/lib/utils/date';
+import { relativeInZone } from '@/lib/timezone';
+import { useUserTimezone } from '@/hooks/useUserTimezone';
 import type { Note } from '@/types/domain';
 
 /**
@@ -30,6 +31,7 @@ export function NoteCard({
   onOpen: (note: Note) => void;
   onDelete: (note: Note) => void;
 }) {
+  const timezone = useUserTimezone();
   const { title, preview } = splitNote(note.content);
 
   return (
@@ -58,7 +60,7 @@ export function NoteCard({
         </span>
 
         <span className={s.footer}>
-          Last modified {relativeFromEpochMs(note.last_modified)}
+          Last modified {relativeInZone(note.last_modified, timezone)}
         </span>
       </button>
 
@@ -84,6 +86,7 @@ export function TrashNoteCard({
   onRestore: (note: Note) => void;
   onPurge: (note: Note) => void;
 }) {
+  const timezone = useUserTimezone();
   const { title, preview } = splitNote(note.content);
 
   return (
@@ -100,7 +103,7 @@ export function TrashNoteCard({
 
       <span className={s.trashFooter}>
         <span className={s.trashDate}>
-          Deleted {relativeFromEpochMs(note.deleted_at ? new Date(note.deleted_at).getTime() : null)}
+          Deleted {relativeInZone(note.deleted_at ? new Date(note.deleted_at).getTime() : null, timezone)}
         </span>
         <span className={s.trashActions}>
           <button type="button" className={s.trashButton} onClick={() => onRestore(note)}>

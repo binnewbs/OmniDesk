@@ -19,7 +19,7 @@ export function AuthSplit({ children }: { children: React.ReactNode }) {
   return (
     <div className={s.split}>
       <aside className={s.panel}>
-        <span className={s.brand}>Productivity</span>
+        <span className={s.brand}>ProduktifKu</span>
 
         <div className={s.center}>
           <h1 className="t-hero">Everything you need to stay on top of student life.</h1>

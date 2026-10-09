@@ -7,7 +7,11 @@ import { Chip, IconButton } from '@/components/ui/Pill';
 import { Dropdown } from '@/components/ui/Dropdown';
 import { BarChart } from '@/components/charts/BarChart';
 import { CHART_PERIODS } from '@/lib/constants';
-import { buildSeries, formatMonthLabel, stepMonth, summarize } from '@/lib/utils/date';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { useMounted } from '@/hooks/useMounted';
+import { useUserTimezone } from '@/hooks/useUserTimezone';
+import { monthLabelInZone } from '@/lib/timezone';
+import { buildSeries, stepMonth, summarize } from '@/lib/utils/date';
 import { formatMoney } from '@/lib/utils/money';
 import type { ChartPeriod, Transaction } from '@/types/domain';
 import s from './SpendingChart.module.css';
@@ -36,6 +40,8 @@ export function SpendingChart({
   onAnchorChange,
 }: SpendingChartProps) {
   const [period, setPeriod] = useState<ChartPeriod>('daily');
+  const mounted = useMounted();
+  const timezone = useUserTimezone();
 
   // "This month" is the local calendar month, not the UTC one.
   const anchorKey = `${anchor.getFullYear()}-${anchor.getMonth()}`;
@@ -78,10 +84,13 @@ export function SpendingChart({
     const options: { value: string; label: string }[] = [];
     for (let i = 0; i < MONTH_OPTIONS_COUNT; i++) {
       const d = stepMonth(anchor, -i);
-      options.push({ value: `${d.getFullYear()}-${d.getMonth()}`, label: formatMonthLabel(d) });
+      options.push({
+        value: `${d.getFullYear()}-${d.getMonth()}`,
+        label: monthLabelInZone(d, timezone),
+      });
     }
     return options;
-  }, [anchor]);
+  }, [anchor, timezone]);
 
   const compact = (n: number) => formatMoney(n, currency, { compact: true });
   const precise = (n: number) => formatMoney(n, currency);
@@ -114,7 +123,7 @@ export function SpendingChart({
                   aria-haspopup="listbox"
                   onClick={onClick}
                 >
-                  {formatMonthLabel(anchor)}
+                  {mounted ? monthLabelInZone(anchor, timezone) : '—'}
                   <ChevronDown size={16} strokeWidth={2} aria-hidden />
                 </button>
               )}
@@ -137,6 +146,10 @@ export function SpendingChart({
         </>
       }
     >
+      {!mounted ? (
+        <Skeleton variant="block" height={180} />
+      ) : (
+      <>
       <div className={s.summary}>
         <div className={s.summaryItem}>
           <span className="t-muted">Total spent</span>
@@ -161,10 +174,12 @@ export function SpendingChart({
 
       {empty && total === 0 ? (
         <p className="t-muted" style={{ padding: 'var(--space-6) 0' }}>
-          No spending recorded in {formatMonthLabel(anchor)}.
+          No spending recorded in {mounted ? monthLabelInZone(anchor, timezone) : '—'}.
         </p>
       ) : (
         <BarChart data={buckets} height={180} formatValue={compact} />
+      )}
+      </>
       )}
     </Card>
   );

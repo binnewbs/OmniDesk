@@ -2,8 +2,9 @@
 
 import { useActionState, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Search, StickyNote, Trash, Trash2 } from 'lucide-react';
+import { Plus, StickyNote, Trash, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/shell/PageHeader';
+import { GlobalSearch } from '@/components/shell/GlobalSearch';
 import { Button } from '@/components/ui/Button';
 import { IconButton } from '@/components/ui/Pill';
 import { Card } from '@/components/ui/Card';
@@ -11,6 +12,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/components/ui/Toast';
 import {
   createFolderAction,
+  getNoteForEditorAction,
   createNoteAction,
   deleteFolderAction,
   deleteNoteAction,
@@ -31,15 +33,12 @@ interface NotesScreenProps {
   notes: Note[];
   trashed: Note[];
   folders: NoteFolder[];
-  /** Server-filtered by the `q` search param, so search is shareable. */
-  searchTerm: string;
 }
 
 export function NotesScreen({
   notes: initialNotes,
   trashed,
   folders: initialFolders,
-  searchTerm: initialSearch,
 }: NotesScreenProps) {
   const router = useRouter();
   const { show } = useToast();
@@ -47,7 +46,6 @@ export function NotesScreen({
   const [notes, setNotes] = useState(initialNotes);
   const [folders, setFolders] = useState(initialFolders);
   const [view, setView] = useState<View>('all');
-  const [search, setSearch] = useState(initialSearch);
   const [openNote, setOpenNote] = useState<Note | null>(null);
   const [creatingFolder, setCreatingFolder] = useState(false);
 
@@ -55,8 +53,7 @@ export function NotesScreen({
 
   const isTrash = view === 'trash';
 
-  // Rows shown, filtered client-side by folder; the search term is already
-  // applied by the server.
+  // Rows shown, filtered client-side by the selected folder.
   const visible = useMemo(() => {
     const base = isTrash ? trashed : notes;
     if (view === 'all' || isTrash) return base;
@@ -69,13 +66,6 @@ export function NotesScreen({
   /** Mutations revalidate on the server, so pull the authoritative rows back. */
   const refresh = () => router.refresh();
 
-  const onSearch = (term: string) => {
-    setSearch(term);
-    const params = new URLSearchParams();
-    if (term) params.set('q', term);
-    router.replace(params.size ? `/notes?${params}` : '/notes', { scroll: false });
-  };
-
   const onNewNote = async () => {
     const result = await createNoteAction(view === 'all' || isTrash ? null : view);
     if (!result.ok || !result.note) {
@@ -86,6 +76,16 @@ export function NotesScreen({
     // Create-and-open: the user lands in the editor without a second click.
     setOpenNote(result.note);
     refresh();
+  };
+
+  /** A search result carries only an id, so the note is fetched for the editor. */
+  const openNoteById = async (id: string) => {
+    const result = await getNoteForEditorAction(id);
+    if (!result.ok || !result.note) {
+      show({ tone: 'error', message: result.message ?? 'Could not open that note.' });
+      return;
+    }
+    setOpenNote(result.note);
   };
 
   const onDeleteNote = async (note: Note) => {
@@ -146,18 +146,8 @@ export function NotesScreen({
         subtitle="Pinned and recent notes"
         actions={
           <>
-            <div className={s.searchBox}>
-              <Search size={16} strokeWidth={2} aria-hidden />
-              <input
-                className={s.searchInput}
-                type="search"
-                placeholder="Search notes"
-                aria-label="Search notes"
-                value={search}
-                onChange={(e) => onSearch(e.target.value)}
-              />
-            </div>
-            <Button variant="primary" iconLeft={Plus} onClick={onNewNote}>
+            <GlobalSearch scope="notes" onSelectNote={openNoteById} />
+            <Button variant="primary" onClick={onNewNote}>
               + Note
             </Button>
           </>
@@ -287,8 +277,9 @@ export function NotesScreen({
               {visible.length === 0 && (
                 <EmptyState
                   icon={StickyNote}
-                  title={search ? 'No notes match your search' : 'No notes yet'}
-                  hint={search ? undefined : 'Create your first note with + Note.'}
+                  title="No notes yet"
+                  hint="Create your first note with + Note, or use Search to find one."
+
                 />
               )}
             </>

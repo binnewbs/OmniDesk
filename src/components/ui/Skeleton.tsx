@@ -30,13 +30,3 @@ export function Skeleton({ variant = 'line', width, height, radius }: SkeletonPr
   );
 }
 
-/** The dashboard's "Pinned notes" preview lines, matching the reference shape. */
-export function SkeletonLines({ widths = [100, 80, 55] }: { widths?: number[] }) {
-  return (
-    <div className="stack" style={{ gap: 8, paddingTop: 4 }}>
-      {widths.map((w, i) => (
-        <Skeleton key={i} width={`${w}%`} height={10} />
-      ))}
-    </div>
-  );
-}

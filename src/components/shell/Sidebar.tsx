@@ -34,7 +34,7 @@ export function Sidebar({ username, avatar }: SidebarProps) {
 
   return (
     <nav className={s.sidebar} aria-label="Main">
-      <span className={s.brand}>Productivity</span>
+      <span className={s.brand}>ProduktifKu</span>
 
       <ul className={s.nav}>
         {NAV_ITEMS.map((item) => {

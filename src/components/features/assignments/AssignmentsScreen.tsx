@@ -131,7 +131,8 @@ export function AssignmentsScreen({ initial }: { initial: Assignment[] }) {
 
       <KanbanBoard assignments={visible} onChange={setAssignments} onOpen={openEdit} />
 
-      <AssignmentModal open={modalOpen} onClose={onClose} assignment={active} />
+      {/* Rendered only while open so a previous success cannot re-fire on reopen. */}
+      {modalOpen && <AssignmentModal open onClose={onClose} assignment={active} />}
     </main>
   );
 }

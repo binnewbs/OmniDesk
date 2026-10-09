@@ -1,13 +1,16 @@
 'use client';
 
-import { useActionState, useEffect } from 'react';
+import { useActionState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
+import { useSubmitFeedback } from '@/hooks/useSubmitFeedback';
 import { CLASS_THEMES, WEEKDAYS } from '@/lib/constants';
 import { currentWeekday } from '@/lib/utils/date';
+import { useUserTimezone } from '@/hooks/useUserTimezone';
+import { useMounted } from '@/hooks/useMounted';
 import {
   createClassAction,
   updateClassAction,
@@ -34,6 +37,12 @@ export function ClassModal({
 }) {
   const isEdit = Boolean(klass);
   const { show } = useToast();
+  const timezone = useUserTimezone();
+  const mounted = useMounted();
+  // Resolved during render, not stored in state: the server cannot know the
+  // user's zone, so before mount we fall back to Mon and let the client correct
+  // it on its first post-hydration render.
+  const defaultDay = mounted ? (currentWeekday(timezone) ?? WEEKDAYS[0]) : WEEKDAYS[0];
 
   const [createState, createAction, creating] = useActionState(createClassAction, initial);
   const [editState, editAction, editing] = useActionState(updateClassAction, initial);
@@ -42,11 +51,10 @@ export function ClassModal({
   const pending = isEdit ? editing : creating;
   const state = isEdit ? editState : createState;
 
-  useEffect(() => {
-    if (!state.ok || pending) return;
+  useSubmitFeedback(state, pending, () => {
     onClose();
     show({ tone: 'success', message: isEdit ? 'Class updated.' : 'Class added.' });
-  }, [state.ok, pending, isEdit, onClose, show]);
+  });
 
   const currentTheme = klass?.color_theme ?? CLASS_THEMES[0];
 
@@ -117,7 +125,7 @@ export function ClassModal({
         <Select
           label="Day"
           name="day"
-          defaultValue={klass?.day ?? currentWeekday() ?? WEEKDAYS[0]}
+          defaultValue={klass?.day ?? defaultDay}
           options={WEEKDAYS}
         />
 

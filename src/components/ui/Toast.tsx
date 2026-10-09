@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { AlertCircle, CheckCircle2, Info, Undo2, X } from 'lucide-react';
+import { useMounted } from '@/hooks/useMounted';
 import s from './Toast.module.css';
 
 export type ToastTone = 'success' | 'error' | 'info';
@@ -34,6 +35,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const nextId = useRef(0);
   const timers = useRef(new Map<number, ReturnType<typeof setTimeout>>());
+  const mounted = useMounted();
 
   const dismiss = useCallback((id: number) => {
     const timer = timers.current.get(id);
@@ -60,7 +62,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      {typeof document !== 'undefined' &&
+      {/* Gated on `mounted`, not `typeof document`: the document already exists
+          during hydration, so that check renders the container on the client and
+          nothing on the server, which is a hydration mismatch on every page. */}
+      {mounted &&
         createPortal(
           <div className={s.stack} role="status" aria-live="polite">
             {toasts.map((toast) => {

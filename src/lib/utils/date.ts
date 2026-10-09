@@ -11,6 +11,10 @@ import {
 } from 'date-fns';
 import { WEEKDAYS } from '@/lib/constants';
 import type { ChartBucket, ChartPeriod, Weekday } from '@/types/domain';
+import { DEFAULT_TIMEZONE, weekdayIndexInZone } from '@/lib/timezone';
+
+/** The leading `YYYY-MM-DD` of any stored timestamp or date string. */
+const CALENDAR_DATE_RE = /^(\d{4})-(\d{2})-(\d{2})/;
 
 /**
  * Timezone rule (PLAN.md §13.2): timestamps are stored as UTC ISO strings, but
@@ -70,30 +74,91 @@ export function formatDate(
       return format(d, 'd MMMM yyyy');
     case 'day':
       return format(d, 'd');
-    case 'relative': {
-      // Positive = in the future, negative = in the past.
-      const startOfToday = new Date();
-      startOfToday.setHours(0, 0, 0, 0);
-      const startOfThat = new Date(d);
-      startOfThat.setHours(0, 0, 0, 0);
-
-      const days = Math.round((startOfThat.getTime() - startOfToday.getTime()) / 86_400_000);
-
-      if (days === 0) return 'Today';
-      if (days === 1) return 'Tomorrow';
-      if (days === -1) return 'Yesterday';
-      if (days > 0) return `In ${days} days`;
-      return `${Math.abs(days)} days ago`;
-    }
+    case 'relative':
+      return relativeFromDate(d);
     default:
       return format(d, 'd MMM yyyy');
   }
 }
 
+/**
+ * Formats a value that means "a day", not "a moment".
+ *
+ * `transactions.date` and `subscriptions.start_date` are written from an
+ * `<input type="date">`, so they are stored as UTC midnight of the day the user
+ * picked. `assignments.due_date` is `YYYY-MM-DD` text. All three are calendar
+ * dates, and formatting them through `new Date(iso)` reads them in whatever
+ * timezone the renderer happens to be in — which shifts the label by a day for
+ * every user west of UTC (UTC midnight is still the previous day in New York),
+ * and differs between a UTC server and a local browser.
+ *
+ * Parsing the components directly makes the output identical everywhere, with
+ * no timezone involved at all.
+ */
+export function formatCalendarDate(
+  value: string | null | undefined,
+  style: 'short' | 'long' | 'day' | 'weekday' = 'short',
+): string {
+  const parts = CALENDAR_DATE_RE.exec(value ?? '');
+  if (!parts) return '—';
+
+  const [, y, m, d] = parts;
+  const year = Number(y);
+  const month = Number(m);
+  const day = Number(d);
+
+  if (month < 1 || month > 12 || day < 1 || day > 31) return '—';
+
+  const asUtc = new Date(Date.UTC(year, month - 1, day));
+
+  // Formatting goes through Intl pinned to UTC rather than date-fns' `format`,
+  // which would convert the instant back into the host's local timezone and
+  // reintroduce exactly the off-by-one-day shift this avoids.
+  switch (style) {
+    case 'long':
+      return calendarFormat(asUtc, { day: 'numeric', month: 'long', year: 'numeric' });
+    case 'day':
+      return calendarFormat(asUtc, { day: 'numeric' });
+    case 'weekday':
+      return calendarFormat(asUtc, { weekday: 'short' });
+    default:
+      return calendarFormat(asUtc, { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+}
+
+function calendarFormat(date: Date, options: Intl.DateTimeFormatOptions): string {
+  return new Intl.DateTimeFormat('en-GB', { ...options, timeZone: 'UTC' }).format(date);
+}
+
+/**
+ * Reads a calendar date back as a plain `YYYY-MM-DD`, for `<input type="date">`.
+ * The stored value is UTC midnight, so slicing is both correct and stable.
+ */
+export function toCalendarInput(value: string | null | undefined): string {
+  return value ? value.slice(0, 10) : '';
+}
+
+/** Positive = in the future, negative = in the past. */
+function relativeFromDate(d: Date, today = new Date()): string {
+  const startOfToday = new Date(today);
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const startOfThat = new Date(d);
+  startOfThat.setHours(0, 0, 0, 0);
+
+  const days = Math.round((startOfThat.getTime() - startOfToday.getTime()) / 86_400_000);
+
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Tomorrow';
+  if (days === -1) return 'Yesterday';
+  if (days > 0) return `In ${days} days`;
+  return `${Math.abs(days)} days ago`;
+}
+
 /** notes.last_modified / notes.created_at are epoch milliseconds. */
 export function relativeFromEpochMs(ms: number | null | undefined): string {
   if (!ms) return '—';
-  return formatDate(new Date(ms).toISOString(), 'relative');
+  return relativeFromDate(new Date(ms));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -116,8 +181,13 @@ export function normalizeDay(raw: string | null | undefined): Weekday | null {
   return day ?? null;
 }
 
-export function currentWeekday(): Weekday | null {
-  const today = SUNDAY_INDEXED[new Date().getDay()];
+/**
+ * The current weekday in the user's zone. Returns null at the weekend, because
+ * the timetable is Mon–Fri only and there is no column to show.
+ */
+export function currentWeekday(timezone: string = DEFAULT_TIMEZONE): Weekday | null {
+  const index = weekdayIndexInZone(new Date(), timezone);
+  const today = SUNDAY_INDEXED[index];
   return WEEKDAYS.find((d) => d === today) ?? null;
 }
 

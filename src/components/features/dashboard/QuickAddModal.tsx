@@ -79,19 +79,17 @@ export function QuickAddModal({
         </div>
       </Modal>
 
-      <TransactionModal
-        open={kind === 'transaction'}
-        onClose={close}
-        transaction={null}
-      />
+      {/* Each nested form is mounted only while its step is active, so its
+          useActionState resets between quick-adds. */}
+      {kind === 'transaction' && (
+        <TransactionModal open onClose={close} transaction={null} />
+      )}
 
-      <AssignmentModal
-        open={kind === 'assignment'}
-        onClose={close}
-        assignment={null}
-      />
+      {kind === 'assignment' && (
+        <AssignmentModal open onClose={close} assignment={null} />
+      )}
 
-      <ClassModal open={kind === 'class'} onClose={close} klass={null} />
+      {kind === 'class' && <ClassModal open onClose={close} klass={null} />}
     </>
   );
 }

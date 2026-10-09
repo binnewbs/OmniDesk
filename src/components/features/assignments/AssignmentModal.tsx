@@ -1,11 +1,12 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input, Select, Textarea } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
+import { useSubmitFeedback } from '@/hooks/useSubmitFeedback';
 import { ASSIGNMENT_PRIORITIES, ASSIGNMENT_STATUSES } from '@/lib/constants';
 import {
   createAssignmentAction,
@@ -43,12 +44,11 @@ export function AssignmentModal({
   const pending = isEdit ? editing : creating;
   const state = isEdit ? editState : createState;
 
-  // Close and toast as soon as a save succeeds.
-  useEffect(() => {
-    if (!state.ok || pending) return;
+  // Close and toast as soon as a save succeeds, exactly once.
+  useSubmitFeedback(state, pending, () => {
     onClose();
     show({ tone: 'success', message: isEdit ? 'Assignment updated.' : 'Assignment created.' });
-  }, [state.ok, pending, isEdit, onClose, show]);
+  });
 
   const onDelete = async () => {
     if (!assignment) return;
