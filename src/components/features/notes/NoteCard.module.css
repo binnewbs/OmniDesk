@@ -1,0 +1,129 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 170px;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  background: var(--surface-alt);
+  text-align: left;
+  transition: border-color var(--transition);
+}
+
+button.card:hover { border-color: var(--border-input); }
+
+/* The whole card opens the editor; the trash sits on top of it. */
+.card { position: relative; }
+
+.card:hover { border-color: var(--border-input); }
+
+.open {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1;
+  min-height: 138px;
+  text-align: left;
+  border-radius: var(--radius-input);
+}
+
+.delete {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-input);
+  color: var(--muted);
+  opacity: 0;
+  transition: opacity var(--transition), color var(--transition), background var(--transition);
+}
+
+.card:hover .delete,
+.delete:focus-visible {
+  opacity: 1;
+}
+
+.delete:hover {
+  color: var(--text);
+  background: var(--nav-active);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: var(--space-2);
+}
+
+.line {
+  display: block;
+  height: 10px;
+  border-radius: var(--radius-full);
+  background: var(--skeleton);
+  color: var(--muted);
+  font-size: var(--text-muted);
+  line-height: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lineMuted { background: transparent; }
+
+.footer {
+  margin-top: auto;
+  padding-top: var(--space-3);
+  font-size: var(--text-muted);
+  color: var(--muted);
+}
+
+.trashFooter {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+}
+
+.trashDate {
+  font-size: var(--text-muted);
+  color: var(--muted);
+}
+
+.trashActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.trashButton {
+  height: 32px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-full);
+  font-size: var(--text-muted);
+  color: var(--text);
+  transition: background var(--transition), color var(--transition);
+}
+.trashButton:hover { background: var(--nav-active); }
+
+.trashDanger { color: var(--danger); }

@@ -1,0 +1,38 @@
+.chart {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.bar {
+  fill: var(--chart-bar);
+  transition: fill var(--transition);
+}
+
+.bar:hover {
+  fill: var(--accent);
+}
+
+.barMax {
+  fill: var(--accent);
+}
+
+.axis {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.label {
+  fill: var(--muted);
+  font-size: 12px;
+  font-family: var(--font-sans);
+}
+
+.labelX {
+  text-anchor: middle;
+}
+
+.labelY {
+  text-anchor: end;
+  dominant-baseline: middle;
+}

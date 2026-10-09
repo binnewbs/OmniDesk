@@ -1,0 +1,54 @@
+.twoByTwo {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: var(--grid-gap);
+}
+
+/* The reference shows the left column wider, but the rows align 1:1. */
+.twoByTwo > * {
+  min-width: 0;
+}
+
+.notePreview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--row-divider);
+}
+.notePreview:first-child { border-top: none; padding-top: 0; }
+
+.noteTitle {
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.noteBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.noteLine {
+  height: 10px;
+  border-radius: var(--radius-full);
+  background: var(--skeleton);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: var(--text-muted);
+  line-height: 10px;
+}
+
+.noteLine:nth-child(1) { width: 92%; }
+.noteLine:nth-child(2) { width: 74%; }
+.noteLine:nth-child(3) { width: 48%; }
+
+@media (max-width: 1024px) {
+  .twoByTwo { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .twoByTwo { grid-template-columns: 1fr; }
+}

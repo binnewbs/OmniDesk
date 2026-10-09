@@ -1,0 +1,22 @@
+/* base.css — element defaults and typography roles.
+   Each role is one named class, not a utility. */
+
+h1,
+h2,
+h3,
+h4,
+p { margin: 0; }
+
+h1 { font-size: var(--text-title); font-weight: 600; letter-spacing: -0.01em; }
+
+.t-title { font-size: var(--text-title); font-weight: 600; letter-spacing: -0.01em; }
+.t-stat  { font-size: var(--text-stat);  font-weight: 600; }
+.t-hero  { font-size: var(--text-hero);  font-weight: 600; line-height: 1.2; }
+.t-card  { font-size: var(--text-base);  font-weight: 600; }
+.t-body  { font-size: var(--text-base); }
+.t-muted { font-size: var(--text-muted); color: var(--muted); }
+.t-label { font-size: var(--text-label); color: var(--muted); }
+.t-link  { font-size: var(--text-base); font-weight: 500; color: var(--text); }
+.t-link:hover { color: var(--accent); }
+
+.subtitle { font-size: var(--text-muted); color: var(--muted); }

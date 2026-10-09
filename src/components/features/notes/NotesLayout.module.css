@@ -1,0 +1,123 @@
+.layout {
+  display: flex;
+  gap: var(--space-6);
+  align-items: flex-start;
+}
+
+/* ---- Folders card: 200px, top-aligned, does not stretch ---- */
+.folders {
+  width: 200px;
+  flex-shrink: 0;
+  align-self: start;
+  gap: var(--space-1);
+}
+
+.folders__title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+
+.folderItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 40px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-input);
+  font-size: var(--text-base);
+  color: var(--text);
+  text-align: left;
+  transition: background var(--transition), color var(--transition);
+}
+
+.folderItem:hover { background: var(--nav-active); }
+
+.folderItemActive {
+  background: var(--nav-active);
+  color: var(--text);
+}
+
+.folderLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folderActions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.folderItem:hover .folderActions,
+.folderItem:focus-within .folderActions {
+  opacity: 1;
+}
+
+.newFolder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 40px;
+  margin-top: var(--space-2);
+  border-radius: var(--radius-input);
+  font-size: var(--text-base);
+  color: var(--muted);
+  transition: color var(--transition), background var(--transition);
+}
+.newFolder:hover { color: var(--text); background: var(--nav-active); }
+
+/* Inline create-folder form */
+.newFolderForm {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.newFolderInput {
+  min-height: 40px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg);
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-input);
+  font-size: var(--text-muted);
+  width: 100%;
+}
+.newFolderInput:focus { border-color: var(--accent); outline: none; }
+
+.newFolderActions {
+  display: flex;
+  gap: var(--space-1);
+}
+
+/* ---- Right side ---- */
+.gridArea {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.sectionLabel {
+  font-size: var(--text-muted);
+  color: var(--muted);
+  margin-bottom: var(--space-3);
+}
+
+/* Narrow screens: the folder list becomes a dropdown above the grid */
+.folderPicker {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .layout { flex-direction: column; gap: var(--space-4); }
+  .folders { display: none; }
+  .folderPicker { display: flex; width: 100%; }
+}

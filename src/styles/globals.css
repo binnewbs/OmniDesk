@@ -1,0 +1,9 @@
+/* globals.css — entry point. Imported once in app/layout.tsx.
+   The five layers load in this order: tokens, then reset, then base element
+   styles, then the design-system primitives, then the global breakpoints. */
+
+@import './tokens.css';
+@import './reset.css';
+@import './base.css';
+@import './primitives.css';
+@import './responsive.css';

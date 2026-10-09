@@ -1,0 +1,82 @@
+/* tokens.css — the single source of color and scale.
+   Every hex in the app comes from here. Nothing else declares a raw color. */
+
+:root {
+  color-scheme: dark; /* native selects, checkboxes and scrollbars go dark */
+
+  /* ---- Color tokens (verbatim from UI_DESIGN.md §2) ---- */
+  --bg:            #0e0f12;
+  --surface:       #14161b;
+  --surface-alt:   #16181d;
+  --border:        #22252c;
+  --border-input:  #2c313a;
+  --row-divider:   #1d2026;
+  --nav-active:    #1a1d24;
+  --text:          #e6e8ec;
+  --muted:         #8b919c;
+  --pill-text:     #aab0bb;
+  --accent:        #7c9cff;
+  --accent-hover:  #6b8dff;
+  --on-accent:     #0e0f12;
+  --chart-bar:     #2a3550;
+  --skeleton:      #22252c;
+  --avatar-fill:   #262a31;
+  --danger:        #ff8080;
+
+  /* Schedule class tints, cycled per class. Backdrop = tint + alpha suffix. */
+  --theme-1: #7c9cff;
+  --theme-2: #5fd0b0;
+  --theme-3: #e8a76b;
+  --theme-4: #c08cf0;
+  --theme-1-bg: #7c9cff21; /* ~13% alpha, the block fill */
+  --theme-1-br: #7c9cff33; /* ~20% alpha, the block border */
+  --theme-2-bg: #5fd0b021;
+  --theme-2-br: #5fd0b033;
+  --theme-3-bg: #e8a76b21;
+  --theme-3-br: #e8a76b33;
+  --theme-4-bg: #c08cf021;
+  --theme-4-br: #c08cf033;
+
+  /* ---- Spacing scale: 4 / 8 / 12 / 16 / 24 / 32 / 40 ---- */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px; /* card padding, per spec — not on the base scale */
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* ---- Shape ---- */
+  --radius-card:  12px;
+  --radius-input: 8px;
+  --radius-full:  9999px;
+
+  /* ---- Fixed control heights (the symmetry rule lives here) ---- */
+  --h-button: 40px;
+  --h-chip:   36px;
+  --h-pill:   24px;
+  --h-icon:   36px;
+  --h-input:  44px;
+
+  /* ---- Type ---- */
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --text-hero:  32px;
+  --text-title: 24px;
+  --text-stat:  26px;
+  --text-base:  14px;
+  --text-muted: 13px;
+  --text-label: 12px;
+
+  /* ---- Layout constants ---- */
+  --sidebar-w:    220px;
+  --page-pad-y:   var(--space-8);
+  --page-pad-x:   var(--space-10);
+  --grid-gap:     var(--space-4);
+  --stack-gap:    var(--space-6);
+  --btn-pad-x:    18px;
+  --chip-pad-x:   var(--space-4);
+  --pill-pad-x:   var(--space-3);
+
+  --transition: 140ms ease;
+}

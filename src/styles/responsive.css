@@ -1,0 +1,21 @@
+/* responsive.css — the only global breakpoints.
+   Feature-specific responsive rules live in the module that owns the layout. */
+
+@media (max-width: 1024px) {
+  :root { --sidebar-w: 64px; }
+  .grid--4,
+  .grid--split { grid-template-columns: repeat(2, 1fr); }
+  .grid--5 { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+  :root { --page-pad-x: var(--space-6); }
+  .grid--4,
+  .grid--3,
+  .grid--5,
+  .grid--split,
+  .grid--2 { grid-template-columns: 1fr; }
+  .row--2-1 { flex-direction: column; }
+  .row--2-1 > * { width: 100%; }
+  .page-header { flex-direction: column; align-items: stretch; }
+}

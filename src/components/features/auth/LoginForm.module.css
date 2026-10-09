@@ -1,0 +1,38 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: 380px;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.passwordBlock {
+  position: relative;
+}
+
+.reveal {
+  position: absolute;
+  top: 30px; /* clears the field label, sits inside the 44px input */
+  right: var(--space-2);
+}
+
+.forgot {
+  align-self: flex-end;
+  margin-top: calc(var(--space-6) * -1 + var(--space-2));
+  color: var(--accent);
+  font-size: var(--text-muted);
+}
+.forgot:hover { color: var(--text); }
+
+.switch {
+  font-size: var(--text-muted);
+  color: var(--muted);
+  text-align: center;
+}
+.switch .t-link { color: var(--accent); }

@@ -1,0 +1,106 @@
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--grid-gap);
+  /* Columns end where their content ends, as in the reference */
+  align-items: start;
+}
+
+.column {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: 180px;
+}
+
+/* The column the card is hovering over. */
+.columnOver {
+  border-color: var(--border-input);
+  background: var(--nav-active);
+}
+
+.column__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.column__title {
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.column__count {
+  font-size: var(--text-label);
+  color: var(--muted);
+}
+
+.card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: grab;
+  touch-action: none;
+  transition: border-color var(--transition);
+}
+
+.card:hover { border-color: var(--border-input); }
+.card:active { cursor: grabbing; }
+
+.cardOverlay {
+  cursor: grabbing;
+  border-color: var(--accent);
+}
+
+.cardDragging {
+  opacity: 0.4;
+}
+
+.cardTitle {
+  font-size: var(--text-base);
+}
+
+.cardCourse {
+  font-size: var(--text-muted);
+  color: var(--muted);
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.cardDue {
+  font-size: var(--text-muted);
+  color: var(--muted);
+}
+
+.cardDueOverdue {
+  color: var(--danger);
+}
+
+.empty {
+  font-size: var(--text-muted);
+  color: var(--muted);
+  padding: var(--space-4) 0;
+  text-align: center;
+}
+
+@media (max-width: 1024px) {
+  .board { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .board { grid-template-columns: 1fr; }
+}
