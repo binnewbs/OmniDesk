@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { requireContext } from '@/lib/supabase/auth';
 import { RepositoryError } from '@/lib/supabase/errors';
 import { toNumber } from '@/lib/utils/money';

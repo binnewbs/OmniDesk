@@ -1,28 +1,23 @@
+import 'server-only';
+
 import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import { cache } from 'react';
 import type { Database } from './types';
 
 /**
  * RSC / server action client, bound to the request's cookies.
  *
- * Note on the dynamic imports: Next walks the module graph of a `'use server'`
- * file starting from the client components that import its actions. A static
- * import of `next/headers` or `server-only` on that path fails the build, so
- * both are resolved inside the function body instead. The behaviour is
- * unchanged on the server, and the explicit `window` check keeps a browser call
- * from silently returning a client with no cookies.
+ * `server-only` is the guard that keeps this out of the browser. It works
+ * because every module that imports it — the repositories, and the `'use server'`
+ * action files — is itself server-only. If that ever stops being true, a client
+ * component importing one of those modules fails the build loudly instead of
+ * shipping this to the browser.
  *
  * Wrapped in React's `cache` so that several calls within one render (a page,
  * its layout, and a repository chain) share one cookie read and one client.
  */
 export const createClient = cache(async () => {
-  if (typeof window !== 'undefined') {
-    throw new Error(
-      'createClient() from lib/supabase/server was called in the browser. Use lib/supabase/client instead.',
-    );
-  }
-
-  const { cookies } = await import('next/headers');
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 

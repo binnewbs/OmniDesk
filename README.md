@@ -47,8 +47,10 @@ Fill in:
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Project Settings → API |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Project Settings → API |
-| `SUPABASE_SERVICE_ROLE_KEY` | Project Settings → API (server only, used by the seed) |
 | `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` in development |
+
+`SUPABASE_SERVICE_ROLE_KEY` is optional and unused by the application — the seed
+runs in the SQL Editor, which has its own credentials.
 
 ### 4. Auth URL configuration
 
@@ -104,32 +106,33 @@ real `DELETE` is "Delete forever" in the Notes trash.
 
 ### Two decisions that differ from the plan
 
-Both are consequences of Next 16, and both are commented at the call site.
-
 1. **`proxy.ts` instead of `middleware.ts`.** Next 16 renamed the convention.
    `src/proxy.ts` exports `proxy()` instead of `middleware()`; the logic is
    unchanged.
 
-2. **No `import 'server-only'` in the data layer.** Next walks the module graph
-   of a `'use server'` file starting from the client components that import its
-   actions. A static import of `server-only`, `next/headers` or `next/cache` on
-   that path fails the build. So:
-   - `next/headers` is imported dynamically inside `createClient()` in
-     `src/lib/supabase/server.ts`;
-   - `next/cache` is imported dynamically inside `revalidate()` in
-     `src/lib/revalidate.ts`;
-   - a `typeof window` guard in `createClient()` replaces `server-only`.
-
-   Behaviour on the server is identical, and the guard still throws if a browser
-   ever calls the server client.
-
-3. **Onboarding state lives in `user_metadata`, not in a column.** The plan has
+2. **Onboarding state lives in `user_metadata`, not in a column.** The plan has
    `/profile-setup` guarded on `profiles.username` being empty — but the signup
    trigger already fills `username` from the signup form, so that guard could
    never fire. The schema has no onboarding column and adding one is out of
    bounds, so the marker is `user_metadata.profile_setup_complete`
    (`src/lib/profile-setup-state.ts`). Sign-in self-heals the flag for accounts
    that predate it.
+
+### The client/server boundary
+
+`src/lib/actions/*.ts` must open with `'use server';`. That directive is what
+turns each exported function into a server action; without it the file is an
+ordinary module, and a client component importing one of its functions ships the
+whole thing — including the Supabase server client — to the browser. The build
+still passes; the breakage only appears when the form is submitted.
+
+Everything that touches the database carries `import 'server-only';`:
+`lib/supabase/*`, `lib/repositories/*` and `lib/revalidate.ts`. The pure modules
+that client forms legitimately share — `lib/validation/`, `lib/utils/`,
+`lib/constants.ts` — deliberately do not.
+
+`src/lib/layering.test.ts` asserts both rules, so the mistake fails a test
+instead of a form submission.
 
 ---
 
@@ -171,14 +174,30 @@ src/
 | `npm run start` | serve the production build |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
+| `npm test` | Vitest: money, date bucketing, status normalisation, layering |
 
 ---
 
 ## Deployment
 
-Vercel is the natural host. Set the four environment variables in the project
-settings, apply the migrations to the production Supabase project, and add the
-production URL to **Authentication → URL Configuration**.
+Vercel is the natural host.
+
+1. Apply `supabase/apply_all.sql` to the production Supabase project first.
+2. Push the repository and import it into Vercel.
+3. **Set the environment variables by hand** — Vercel does not read `.env.local`,
+   which is gitignored. Add `NEXT_PUBLIC_SUPABASE_URL`,
+   `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `NEXT_PUBLIC_SITE_URL` under
+   Project → Settings → Environment Variables.
+
+   Without them the build fails with `Missing NEXT_PUBLIC_SUPABASE_URL`, which is
+   a loud failure rather than a broken deploy.
+4. Point auth back at the production domain: **Authentication → URL Configuration**
+   → Site URL = your Vercel domain, and add `<your-domain>/auth/confirm` to
+   Redirect URLs. Skipping this is the usual reason signup "works" but the
+   confirmation link lands on localhost.
+
+`NEXT_PUBLIC_SITE_URL` must be the production domain, not `localhost:3000`: the
+confirmation and password-reset emails build their links from it.
 
 Before shipping, confirm RLS is enabled on all 8 tables and that the Storage
 policies exist.

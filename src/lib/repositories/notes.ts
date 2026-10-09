@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { createClient } from '@/lib/supabase/server';
 import { RepositoryError } from '@/lib/supabase/errors';
 import { revalidate, AFFECTS_NOTES } from '@/lib/revalidate';

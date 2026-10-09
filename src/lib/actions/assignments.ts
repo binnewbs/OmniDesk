@@ -1,3 +1,5 @@
+'use server';
+
 import { z } from 'zod';
 import { requireUserOrThrow } from '@/lib/supabase/auth';
 import { RepositoryError } from '@/lib/supabase/errors';

@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { createClient } from '@/lib/supabase/server';
 import { requireContext } from '@/lib/supabase/auth';
 import { RepositoryError } from '@/lib/supabase/errors';

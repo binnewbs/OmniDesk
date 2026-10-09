@@ -1,3 +1,5 @@
+'use server';
+
 import { redirect } from 'next/navigation';
 import { createClient, getUser } from '@/lib/supabase/server';
 import { RepositoryError } from '@/lib/supabase/errors';

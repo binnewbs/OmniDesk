@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { redirect } from 'next/navigation';
 import { createClient, getUser } from '@/lib/supabase/server';
 import { AuthRequiredError } from '@/lib/supabase/errors';

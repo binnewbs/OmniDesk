@@ -1,14 +1,14 @@
+import 'server-only';
+
+import { revalidatePath } from 'next/cache';
+
 /**
  * Cache invalidation, isolated in one place.
  *
- * `next/cache` cannot be imported statically anywhere that a client component
- * can reach: Next walks the module graph of a `'use server'` file from the
- * components that import its actions, and pulls the static import in with it,
- * which fails the build. Importing it dynamically inside the function body keeps
- * it out of the client graph while behaving identically on the server.
+ * Only ever imported by server-only modules (the repositories and the
+ * `'use server'` action files), so `next/cache` can be imported statically.
  */
 export async function revalidate(paths: string | string[]): Promise<void> {
-  const { revalidatePath } = await import('next/cache');
   for (const path of Array.isArray(paths) ? paths : [paths]) {
     revalidatePath(path);
   }
@@ -19,7 +19,6 @@ export async function revalidate(paths: string | string[]): Promise<void> {
  * needs: the session cookie and the sidebar both live above the route segment.
  */
 export async function revalidateAll(): Promise<void> {
-  const { revalidatePath } = await import('next/cache');
   revalidatePath('/', 'layout');
 }
 
