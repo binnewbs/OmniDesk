@@ -143,7 +143,12 @@ export async function restoreNote(userId: string, id: string) {
   await revalidate(AFFECTS_NOTES);
 }
 
-/** Real DELETE. Reachable only from Notes → Trash ("Delete forever"). */
+/**
+ * Real DELETE, and the only one in the app. Guarded on `deleted_at is not null`
+ * so the data layer — not just the UI — enforces "hard delete only from Trash"
+ * (PLAN.md §12): a call with a live note's id matches no row and deletes
+ * nothing.
+ */
 export async function purgeNote(userId: string, id: string) {
   const supabase = await createClient();
 
@@ -151,7 +156,8 @@ export async function purgeNote(userId: string, id: string) {
     .from(NOTES)
     .delete()
     .eq('user_id', userId)
-    .eq('id', id);
+    .eq('id', id)
+    .not('deleted_at', 'is', null);
 
   if (error) throw new RepositoryError('notes.purge', error);
 

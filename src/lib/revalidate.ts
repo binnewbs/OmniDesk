@@ -23,7 +23,6 @@ export async function revalidateAll(): Promise<void> {
 }
 
 /** The routes a content mutation affects, reused across repositories. */
-export const AFFECTS_DASHBOARD = ['/dashboard'];
 export const AFFECTS_ASSIGNMENTS = ['/assignments', '/dashboard'];
 export const AFFECTS_CASHFLOW = ['/cashflow', '/dashboard'];
 export const AFFECTS_SCHEDULE = ['/schedule', '/dashboard'];

@@ -8,8 +8,10 @@ import { listSubscriptions } from '@/lib/repositories/subscriptions';
 import { listTodaysClasses } from '@/lib/repositories/schedule';
 import { listNotes } from '@/lib/repositories/notes';
 import { getSettings } from '@/lib/repositories/settings';
-import { startOfMonthInZone } from '@/lib/timezone';
+import { startOfMonthInZone, startOfNextMonthInZone } from '@/lib/timezone';
 import { getUserTimezone } from '@/lib/timezone.server';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/supabase/types';
 import type {
   Assignment,
   DashboardStats,
@@ -23,46 +25,91 @@ import type {
  * every row to the browser; only the small slices the dashboard renders come
  * back (PLAN.md §6.5).
  */
-export async function getDashboardStats(userId: string): Promise<DashboardStats> {
+export async function getDashboardStats(userId: string, now = new Date()): Promise<DashboardStats> {
   const { supabase } = await requireContext();
 
   // "This month" is the user's calendar month, not the server's: a UTC server
   // would otherwise disagree with the user's browser about where the month
-  // starts, which matters on the 1st and across year boundaries.
-  const monthStartISO = startOfMonthInZone(new Date(), await getUserTimezone()).toISOString();
+  // starts, which matters on the 1st and across year boundaries. The upper
+  // bound is exclusive, otherwise a transaction dated in a future month would
+  // be counted as "this month" forever.
+  const timezone = await getUserTimezone();
+  const month = await monthTotalsQuery(
+    supabase,
+    userId,
+    startOfMonthInZone(now, timezone).toISOString(),
+    startOfNextMonthInZone(now, timezone).toISOString(),
+  );
 
-  const [allTime, month, subs] = await Promise.all([
+  const [allTime, subs] = await Promise.all([
     supabase
       .from('transactions')
       .select('type, amount')
       .eq('user_id', userId)
       .is('deleted_at', null),
-    supabase
-      .from('transactions')
-      .select('type, amount')
-      .eq('user_id', userId)
-      .is('deleted_at', null)
-      .gte('date', monthStartISO),
     listSubscriptions(userId),
   ]);
-
-  const sum = (rows: { type: string; amount: number }[], type: string) =>
-    rows
-      .filter((r) => r.type === type)
-      .reduce<number>((total, r) => total + toNumber(r.amount), 0);
 
   const allRows = allTime.data ?? [];
   const monthRows = month.data ?? [];
 
-  const income = sum(allRows, 'income');
-  const expenses = sum(allRows, 'expense');
-
   return {
-    balance: income - expenses,
-    incomeThisMonth: sum(monthRows, 'income'),
-    expensesThisMonth: sum(monthRows, 'expense'),
-    subscriptionsPerMonth: subs.reduce((total, s) => total + toNumber(s.amount), 0),
+    balance: sumByType(allRows, 'income') - sumByType(allRows, 'expense'),
+    incomeThisMonth: sumByType(monthRows, 'income'),
+    expensesThisMonth: sumByType(monthRows, 'expense'),
+    subscriptionsPerMonth: subs.reduce((total, s) => total + s.amount, 0),
   };
+}
+
+/** Income and expenses inside a half-open window. */
+export interface MonthTotals {
+  income: number;
+  expenses: number;
+}
+
+/**
+ * The two "this month" figures the Cashflow stat cards show, aggregated in
+ * Postgres rather than by shipping the whole table to the browser.
+ */
+export async function getMonthTotals(userId: string, now = new Date()): Promise<MonthTotals> {
+  const { supabase } = await requireContext();
+  const timezone = await getUserTimezone();
+
+  const { data, error } = await monthTotalsQuery(
+    supabase,
+    userId,
+    startOfMonthInZone(now, timezone).toISOString(),
+    startOfNextMonthInZone(now, timezone).toISOString(),
+  );
+  if (error) throw new RepositoryError('stats.monthTotals', error);
+
+  const rows = data ?? [];
+  return { income: sumByType(rows, 'income'), expenses: sumByType(rows, 'expense') };
+}
+
+/**
+ * `date >= from AND date < to`. `to` is exclusive on purpose: a transaction on
+ * the 1st must land in exactly one month, never both (PLAN.md §6.5).
+ */
+function monthTotalsQuery(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  from: string,
+  to: string,
+) {
+  return supabase
+    .from('transactions')
+    .select('type, amount')
+    .eq('user_id', userId)
+    .is('deleted_at', null)
+    .gte('date', from)
+    .lt('date', to);
+}
+
+function sumByType(rows: { type: string; amount: number }[], type: string): number {
+  return rows
+    .filter((r) => r.type === type)
+    .reduce<number>((total, r) => total + toNumber(r.amount), 0);
 }
 
 /** The recent-transactions card: a few rows, newest first. */

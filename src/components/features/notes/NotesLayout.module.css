@@ -111,13 +111,29 @@
   margin-bottom: var(--space-3);
 }
 
-/* Narrow screens: the folder list becomes a dropdown above the grid */
+/* The real note card's box, reused by the loading skeleton so the two have the
+   same height and the layout does not jump when the rows arrive. */
+.noteCard {
+  min-height: 170px;
+}
+
+/* Narrow screens: the card is replaced by a chip that opens the same choices
+   as a listbox. Both are rendered at all times and CSS picks one, so switching
+   viewports cannot leave the folders unreachable. */
 .folderPicker {
   display: none;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
 }
 
 @media (max-width: 768px) {
   .layout { flex-direction: column; gap: var(--space-4); }
   .folders { display: none; }
-  .folderPicker { display: flex; width: 100%; }
+  .folderPicker { display: flex; }
+
+  /* The inline create form is a flex row on the card; stacked here it would
+     squeeze the input to nothing next to the Add button. */
+  .newFolderForm { flex-wrap: wrap; }
+  .newFolderInput { flex: 1 1 140px; }
 }

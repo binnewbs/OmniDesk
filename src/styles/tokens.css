@@ -1,5 +1,11 @@
 /* tokens.css — the single source of color and scale.
-   Every hex in the app comes from here. Nothing else declares a raw color. */
+   Every hex in the app comes from here. Nothing else declares a raw color.
+
+   Two themes, one set of token *names*. Dark lives on `:root` and is the
+   default (the design spec in UI_DESIGN.md §1 is dark-only); light overrides
+   the same names on `[data-theme='light']`, which the inline script in the root
+   layout sets before the first paint. Components never branch on the theme —
+   they read the tokens and get the right color for free. */
 
 :root {
   color-scheme: dark; /* native selects, checkboxes and scrollbars go dark */
@@ -22,6 +28,29 @@
   --skeleton:      #22252c;
   --avatar-fill:   #262a31;
   --danger:        #ff8080;
+  --danger-soft:   #ff80801f; /* the wash behind a destructive action's hover */
+  /* Destructive *actions* (delete, sign out) must read as red in both themes.
+     The light theme inverts `--danger` to teal — red's photographic negative —
+     which would make a destructive button look safe, so these opt out. This is
+     the one deliberate exception to a literal inversion, and it exists because
+     hue carries meaning here: the colour says "this is the dangerous button",
+     not "this is what dark mode looked like". */
+  --destructive:      #ff8080;
+  --destructive-soft: #ff80801f;
+  /* Assignment priority. A third group that opts out of inversion, for the same
+     reason as `--destructive`: the hue *is* the meaning. A red "High" pill that
+     inverted to teal would be worse than no colour at all, because teal reads as
+     calm rather than urgent. Low stays on the default `--pill-text`; absence of
+     a colour is the right signal for "nothing to worry about here". */
+  --priority-high:      #ff8080;
+  --priority-medium:    #e8b04b;
+  /* The pill's fill: the same hue at 15% alpha. Alpha rather than a solid hex so
+     the tint follows whatever the pill sits on — a card, or the darker `bg`
+     behind a kanban assignment — instead of needing a second value per surface. */
+  --priority-high-soft:   #ff808026;
+  --priority-medium-soft: #e8b04b26;
+  --scrim:         rgb(0 0 0 / 60%); /* modal backdrop */
+  --scrim-blur:    8px; /* how far the backdrop behind a dialog is defocused */
 
   /* Schedule class tints, cycled per class. Backdrop = tint + alpha suffix. */
   --theme-1: #7c9cff;
@@ -70,6 +99,7 @@
 
   /* ---- Layout constants ---- */
   --sidebar-w:    220px;
+  --sidebar-w-collapsed: 64px; /* icon-only, set by the toggle or by a narrow viewport */
   --page-pad-y:   var(--space-8);
   --page-pad-x:   var(--space-10);
   --grid-gap:     var(--space-4);
@@ -79,4 +109,71 @@
   --pill-pad-x:   var(--space-3);
 
   --transition: 140ms ease;
+}
+
+/* ---- Light theme ----------------------------------------------------------
+   A literal inversion: every channel is `255 - channel`, which is why the
+   results look the way they do. The blue accent becomes dark gold (#836300),
+   the cool greys become warm ones, and red becomes teal. That is not a mistake
+   to be corrected by eye — inverting the bytes is the point, and it is what
+   makes the light theme read as the exact photographic negative of the dark one.
+
+   Note `--danger` inverts to teal here, because #ff8080's opposite is #007f7f.
+   Destructive *actions* (delete, sign out) use `--destructive` instead, which is
+   never inverted, so they stay red in both themes.
+
+   `--scrim` is the second exception, and for a different reason. Inverting the
+   dark theme's black backdrop gives a white one, which does not dim a light
+   page — it bleaches it, and the dialog ends up less prominent than the content
+   it is covering. A scrim's job is to push the page back, so light mode uses a
+   dark one at a lower alpha instead. Like `--destructive`, it is a deliberate
+   departure from "invert the bytes".
+
+   The schedule class tints (`--theme-1` … `--theme-4-bg`, defined above on
+   `:root`) are deliberately NOT repeated here. They are calendar colours, they
+   are chosen per class rather than per theme, and a class block must not
+   change colour when someone flips the theme. Everything below that section of
+   `:root` is layout, spacing and type, which are theme-independent and so are
+   not repeated either. */
+[data-theme='light'] {
+  color-scheme: light; /* native selects, checkboxes and scrollbars go light */
+
+  --bg:            #f1f0ed; /* #0e0f12 */
+  --surface:       #ebe9e4; /* #14161b */
+  --surface-alt:   #e9e7e2; /* #16181d */
+  --border:        #dddad3; /* #22252c */
+  --border-input:  #d3cec5; /* #2c313a */
+  --row-divider:   #e2dfd9; /* #1d2026 */
+  --nav-active:    #e5e2db; /* #1a1d24 */
+  --text:          #191713; /* #e6e8ec */
+  --muted:         #746e63; /* #8b919c */
+  --pill-text:     #554f44; /* #aab0bb */
+  --accent:        #836300; /* #7c9cff */
+  --accent-hover:  #947200; /* #6b8dff */
+  --on-accent:     #f1f0ed; /* #0e0f12 */
+  --chart-bar:     #d5caaf; /* #2a3550 */
+  --skeleton:      #dddad3; /* #22252c */
+  --avatar-fill:   #d9d5ce; /* #262a31 */
+  --danger:        #007f7f; /* #ff8080 — teal, because red inverts to cyan */
+  --danger-soft:   #007f7f1f;
+  --scrim:         rgb(24 24 27 / 45%); /* dark, not inverted — see the note above */
+  /* `--scrim-blur` is deliberately not repeated: a defocus radius is
+     theme-independent, so it stays inherited from `:root`. */
+
+  /* Not inverted, on purpose — see the note on the dark theme's definition.
+     Darkened from the dark theme's values because those are tuned for a
+     near-black background and would be unreadable on a light one.
+
+     Priority goes one step further than `--destructive`: because the pill now
+     has a 15% fill of its own colour, the text has to beat that tint rather
+     than the bare card. #b3261e managed 4.27:1 against its own fill, just under
+     the 4.5:1 AA threshold for 12px text, so both text colours were darkened
+     until they cleared it with room to spare. Every value below is checked
+     against the light card surface *with the fill applied*. */
+  --destructive:      #b3261e;
+  --destructive-soft: #b3261e1f;
+  --priority-high:      #8f1d18;
+  --priority-medium:    #5f3e00;
+  --priority-high-soft:   #8f1d1826;
+  --priority-medium-soft: #5f3e0026;
 }

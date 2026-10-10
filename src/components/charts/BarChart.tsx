@@ -12,6 +12,12 @@ interface BarChartProps {
   data: BarChartDatum[];
   height?: number;
   formatValue: (n: number) => string;
+  /**
+   * Spoken summary. A screen reader cannot get anything useful from the shapes,
+   * so the caller describes what the chart shows in words — for the spending
+   * chart that is the period, the total, the average and the peak.
+   */
+  ariaLabel?: string;
 }
 
 const GUTTER = 48; // left axis labels
@@ -28,7 +34,7 @@ function niceMax(value: number): number {
   return step * magnitude;
 }
 
-export function BarChart({ data, height = 180, formatValue }: BarChartProps) {
+export function BarChart({ data, height = 180, formatValue, ariaLabel }: BarChartProps) {
   const width = 1000; // viewBox units; the svg scales to its container
   const plotHeight = height - PAD_BOTTOM;
   const plotWidth = width - GUTTER;
@@ -39,6 +45,18 @@ export function BarChart({ data, height = 180, formatValue }: BarChartProps) {
   const slot = data.length > 0 ? plotWidth / data.length : plotWidth;
   const barWidth = Math.max(2, slot - GAP);
 
+  // Without an explicit summary the reader would only get "Bar chart", so the
+  // peak bucket is described by default rather than left out.
+  const peak = data.reduce<BarChartDatum | null>(
+    (best, d) => (best === null || d.value > best.value ? d : best),
+    null,
+  );
+  const described =
+    ariaLabel ??
+    (peak && peak.value > 0
+      ? `${data.length} bars. Highest is ${peak.fullLabel ?? peak.label} at ${formatValue(peak.value)}.`
+      : `${data.length} bars, all zero.`);
+
   return (
     <svg
       className={s.chart}
@@ -46,7 +64,7 @@ export function BarChart({ data, height = 180, formatValue }: BarChartProps) {
       height={height}
       viewBox={`0 0 ${width} ${height}`}
       role="img"
-      aria-label="Spending chart"
+      aria-label={described}
     >
       {/* y-axis labels: max, half, zero */}
       {[0, 0.5, 1].map((fraction) => (
@@ -82,6 +100,9 @@ export function BarChart({ data, height = 180, formatValue }: BarChartProps) {
               <title>{`${d.fullLabel ?? d.label}: ${formatValue(d.value)}`}</title>
             </rect>
 
+            {/* Text inside SVG is not reliably announced by screen readers, so
+                the per-bar detail is carried on an SVG <title> (read on hover)
+                and the whole series is summarised by aria-label above. */}
             {d.showLabel && (
               <text className={`${s.label} ${s.labelX}`} x={cx} y={height - 6}>
                 {d.label}

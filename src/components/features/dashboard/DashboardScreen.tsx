@@ -13,6 +13,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { QuickAddModal, type QuickAddKind } from './QuickAddModal';
 import { formatCalendarDate, normalizeDay } from '@/lib/utils/date';
 import { classTheme } from '@/lib/utils/schedule';
+import { priorityTone } from '@/lib/utils/assignment';
 import { formatAmount, formatMoney, toNumber } from '@/lib/utils/money';
 import { relativeInZone } from '@/lib/timezone';
 import { useUserTimezone } from '@/hooks/useUserTimezone';
@@ -121,7 +122,7 @@ export function DashboardScreen({
                     {a.course} · {formatCalendarDate(a.due_date)}
                   </span>
                 </span>
-                <Pill>{a.priority ?? 'Medium'}</Pill>
+                <Pill tone={priorityTone(a.priority)}>{a.priority ?? 'Medium'}</Pill>
               </div>
             ))
           )}

@@ -32,7 +32,13 @@ export async function searchEverything(query: string): Promise<SearchResults> {
 
   try {
     const { supabase, userId } = await requireContext();
-    const pattern = `%${term.replace(/[%_]/g, '')}%`;
+    // PostgREST parses the `.or()` string itself, so `,` `.` `(` `)` are
+    // structural characters there and would let a crafted query rewrite the
+    // filter. Strip them along with the LIKE wildcards; anything left is inert
+    // text. RLS still limits the result to the caller's own rows.
+    const safe = term.replace(/[%_,.()\\]/g, '').slice(0, 60);
+    if (safe.length < 2) return empty;
+    const pattern = `%${safe}%`;
 
     const [assignments, transactions, classes, notes] = await Promise.all([
       supabase

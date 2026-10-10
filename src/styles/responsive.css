@@ -2,7 +2,8 @@
    Feature-specific responsive rules live in the module that owns the layout. */
 
 @media (max-width: 1024px) {
-  :root { --sidebar-w: 64px; }
+  /* --sidebar-w is not touched here: the sidebar module owns its own width and
+     collapses itself below this breakpoint (see Sidebar.module.css). */
   .grid--4,
   .grid--split { grid-template-columns: repeat(2, 1fr); }
   .grid--5 { grid-template-columns: repeat(3, 1fr); }

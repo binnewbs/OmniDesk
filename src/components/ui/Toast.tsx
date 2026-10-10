@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { useRouter } from 'next/navigation';
 import { AlertCircle, CheckCircle2, Info, Undo2, X } from 'lucide-react';
 import { useMounted } from '@/hooks/useMounted';
 import s from './Toast.module.css';
@@ -36,6 +37,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const nextId = useRef(0);
   const timers = useRef(new Map<number, ReturnType<typeof setTimeout>>());
   const mounted = useMounted();
+  const router = useRouter();
 
   const dismiss = useCallback((id: number) => {
     const timer = timers.current.get(id);
@@ -80,6 +82,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                       className={s.action}
                       onClick={async () => {
                         await toast.action?.run();
+                        // Every Undo is a server action that revalidates, which
+                        // only marks the server cache stale. Without this the row
+                        // is back in the database but still missing from the
+                        // list the user is looking at.
+                        router.refresh();
                         dismiss(toast.id);
                       }}
                     >

@@ -5,6 +5,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-
 import { CSS } from '@dnd-kit/utilities';
 import { Pill } from '@/components/ui/Pill';
 import { formatCalendarDate, parseDateSafe } from '@/lib/utils/date';
+import { priorityTone } from '@/lib/utils/assignment';
 import s from './Kanban.module.css';
 import type { Assignment, AssignmentStatus } from '@/types/domain';
 
@@ -62,7 +63,9 @@ export function AssignmentCard({
         <span className={`${s.cardDue} ${overdue ? s.cardDueOverdue : ''}`}>
           {formatCalendarDate(assignment.due_date)}
         </span>
-        <Pill>{assignment.priority ?? 'Medium'}</Pill>
+        <Pill tone={priorityTone(assignment.priority)}>
+          {assignment.priority ?? 'Medium'}
+        </Pill>
       </div>
     </article>
   );

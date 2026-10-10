@@ -65,8 +65,11 @@
 .btn--secondary:hover:not(:disabled) { background: var(--nav-active); }
 .btn--ghost { color: var(--muted); padding-inline: var(--space-3); }
 .btn--ghost:hover:not(:disabled) { color: var(--text); }
-.btn--danger { color: var(--danger); }
-.btn--danger:hover:not(:disabled) { background: var(--nav-active); }
+/* A destructive *action*. Uses `--destructive`, not `--danger`, so that deleting
+   and signing out stay red in the light theme — where `--danger` inverts to
+   teal. Form errors and alert borders keep using `--danger` and do invert. */
+.btn--danger { color: var(--destructive); }
+.btn--danger:hover:not(:disabled) { background: var(--destructive-soft); }
 .btn--full { width: 100%; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -103,6 +106,13 @@
   background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238b919c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right var(--space-4) center;
+}
+
+/* An inline SVG in a data URI cannot read a custom property, so the arrow keeps
+   its dark-theme stroke and light mode redraws it with the inverted `--muted`
+   (#8b919c -> #746e63). */
+[data-theme='light'] .select {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23746e63' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 }
 
 .input--error,
@@ -158,6 +168,22 @@
 }
 .pill--accent { color: var(--accent); border-color: var(--accent); }
 
+/* Priority pills. Text and border at full strength, fill at 15% of the same
+   hue — the same shape as the schedule class tints in §"Schedule class tints"
+   above, so a priority pill and a class block read as related without competing.
+   The colours come from tokens that do not invert, because the hue is what
+   carries "urgent". */
+.pill--high {
+  color: var(--priority-high);
+  border-color: var(--priority-high);
+  background: var(--priority-high-soft);
+}
+.pill--medium {
+  color: var(--priority-medium);
+  border-color: var(--priority-medium);
+  background: var(--priority-medium-soft);
+}
+
 /* ---- Icon-only button: 36x36 ---- */
 .icon-btn {
   display: inline-grid;
@@ -212,6 +238,37 @@
 .row--2-1 > *:last-child { flex: 1; min-width: 0; }
 .stack { display: flex; flex-direction: column; gap: var(--space-4); }
 .stack--6 { gap: var(--space-6); }
+
+/* ---- Sidebar rail -------------------------------------------------------
+   The leading slot of a sidebar row. It exists so a 32px avatar and an 18px
+   icon can occupy the same column: without a fixed slot width, the label that
+   follows starts at a different x depending on which sits in front of it, and
+   the rail reads as three unrelated rows instead of one aligned list. */
+.railLead {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  color: inherit; /* the icon inherits the row's colour, so it cannot drift */
+}
+
+/* The row itself. Fixed height, equal padding both sides, centered content — the
+   symmetry rule from UI_DESIGN.md §2 applied to the rail. Shared by the nav
+   items, the profile link, the theme toggle and sign-out so they cannot drift. */
+.railRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: var(--h-button);
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-input);
+  width: 100%;
+  font-size: var(--text-base);
+  text-align: left;
+  color: var(--muted);
+  transition: background var(--transition), color var(--transition);
+}
 
 /* ---- List rows: title + muted meta on the left, pill on the right ---- */
 .rowItem {

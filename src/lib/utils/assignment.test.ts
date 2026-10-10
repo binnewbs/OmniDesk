@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizePriority, normalizeStatus, resolveDropStatus } from './assignment';
+import { normalizePriority, normalizeStatus, priorityTone, resolveDropStatus } from './assignment';
 
 describe('normalizeStatus', () => {
   it('matches the canonical column headers exactly', () => {
@@ -29,6 +29,28 @@ describe('normalizePriority', () => {
   it('defaults an unknown value to Medium', () => {
     expect(normalizePriority('urgent')).toBe('Medium');
     expect(normalizePriority(null)).toBe('Medium');
+  });
+});
+
+describe('priorityTone', () => {
+  it('maps the canonical priorities to their tones', () => {
+    expect(priorityTone('High')).toBe('high');
+    expect(priorityTone('Medium')).toBe('medium');
+    expect(priorityTone('Low')).toBe('default');
+  });
+
+  it('colours a hand-typed "HIGH" red even though its label is rendered verbatim', () => {
+    // The label comes straight from the column, so a legacy row can read "HIGH"
+    // on screen. The tone normalises, which is what keeps the colour honest.
+    expect(priorityTone('HIGH')).toBe('high');
+    expect(priorityTone('  high ')).toBe('high');
+  });
+
+  it('falls back to the Medium tone for anything unrecognised', () => {
+    expect(priorityTone('urgent')).toBe('medium');
+    expect(priorityTone(null)).toBe('medium');
+    expect(priorityTone(undefined)).toBe('medium');
+    expect(priorityTone('')).toBe('medium');
   });
 });
 describe('resolveDropStatus', () => {

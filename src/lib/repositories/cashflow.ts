@@ -67,7 +67,7 @@ export async function createTransaction(userId: string, input: NewTransaction) {
   if (error) throw new RepositoryError('transactions.create', error);
 
   await revalidate(AFFECTS_CASHFLOW);
-  return data;
+  return { ...data, amount: toNumber(data.amount) };
 }
 
 export async function updateTransaction(userId: string, id: string, input: NewTransaction) {
@@ -85,7 +85,7 @@ export async function updateTransaction(userId: string, id: string, input: NewTr
   if (error) throw new RepositoryError('transactions.update', error);
 
   await revalidate(AFFECTS_CASHFLOW);
-  return data;
+  return { ...data, amount: toNumber(data.amount) };
 }
 
 export async function softDeleteTransaction(userId: string, id: string) {

@@ -1,7 +1,13 @@
-.shell {
-  display: flex;
-  min-height: 100vh;
-}
+/*
+ * The sidebar collapses two ways, and both must produce the same rail:
+ *   1. the header's toggle button, which sets `data-sidebar` on <html>
+ *   2. a viewport under 1024px, where a fresh visit starts collapsed
+ *      (SIDEBAR_AUTO_COLLAPSE_PX in lib/preferences.ts)
+ *
+ * The media query below establishes the collapsed baseline for narrow viewports;
+ * the `[data-sidebar='expanded']` rules that follow it re-open the labels, so the
+ * toggle button still works on a small screen rather than being a dead control.
+ */
 
 .sidebar {
   width: var(--sidebar-w);
@@ -16,50 +22,75 @@
   padding: var(--space-6) var(--space-4);
   display: flex;
   flex-direction: column;
+  /* Width and padding animate together, so the labels' disappearance does not
+     snap while the rail is still sliding. */
+  transition: width var(--transition), padding var(--transition);
+}
+
+/* ---- Header: brand + collapse toggle ----
+   Collapsed, the 64px rail has room for exactly one 36px control, so the
+   toggle takes the brand's place rather than competing with it. */
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-8);
+  min-height: var(--h-icon);
 }
 
 .brand {
   font-size: var(--text-base);
   font-weight: 600;
-  margin-bottom: var(--space-8);
+  white-space: nowrap;
 }
+
+.toggle {
+  display: inline-grid;
+  place-items: center;
+  width: var(--h-icon);
+  height: var(--h-icon);
+  flex-shrink: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-input);
+  color: var(--muted);
+  transition: color var(--transition), background var(--transition);
+}
+.toggle:hover { color: var(--text); background: var(--nav-active); }
 
 .nav {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+  width: 100%;
 }
 
-.navItem {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px var(--space-3);
-  border-radius: var(--radius-input);
-  font-size: var(--text-base);
-  color: var(--muted);
-  transition: background var(--transition), color var(--transition);
-}
+/* Nav items share `.railRow` with the footer, so the whole rail is one
+   horizontal rhythm: same height, same 12px side padding, same 12px icon gap,
+   same 8px radius. */
 .navItem:hover { color: var(--text); }
 .navItem[aria-current='page'] { background: var(--nav-active); color: var(--text); }
+
+.navLabel {
+  /* `title` on the link keeps the name discoverable when this is hidden. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 .footer {
   margin-top: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  /* 4px, matching `.nav`'s gap, so the footer sits on the same rhythm as the
+     list above it instead of being a visibly looser block. */
+  gap: var(--space-1);
+  width: 100%;
 }
 
-.profileLink {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2);
-  margin: calc(var(--space-2) * -1);
-  border-radius: var(--radius-input);
-  transition: background var(--transition);
-  min-width: 0;
-}
+/* The username is 13px rather than the row's 14px because it is supporting text
+   about a person, not a destination — the size difference is the only thing
+   separating it from the nav items, and it is what the original rail did. */
 .profileLink:hover { background: var(--nav-active); }
 
 .username {
@@ -70,34 +101,105 @@
   white-space: nowrap;
 }
 
+/* ---- Sign out ----
+   Geometry comes from `.railRow`; only the colour is specific. */
 .signOut {
-  font-size: var(--text-muted);
-  color: var(--muted);
+  font-weight: 500;
+  /* Destructive, so it is the one control in the rail that is not muted. The
+     icon sits inside `.railLead`, which inherits `currentColor`, keeping the
+     logo and the label the same red. */
+  color: var(--destructive);
 }
-.signOut:hover { color: var(--text); }
+.signOut:hover { background: var(--destructive-soft); color: var(--destructive); }
 
-.main {
-  flex: 1;
-  min-width: 0; /* stops a wide table from breaking the grid */
+.signOutLabel {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Collapse to icons below 1024px */
+/* Confirmation dialog */
+.confirmText { font-size: var(--text-muted); color: var(--muted); line-height: 1.6; }
+
+/* ---- Collapsed ---------------------------------------------------------
+   Labels are moved out of the flow rather than `display: none`, so they stay
+   in the accessibility tree and the transition has something to animate. */
+[data-sidebar='collapsed'] .sidebar {
+  width: var(--sidebar-w-collapsed);
+  padding-inline: var(--space-3);
+  align-items: center;
+}
+[data-sidebar='collapsed'] .head { justify-content: center; }
+[data-sidebar='collapsed'] .brand { display: none; }
+/* Every label in the rail, collapsed to the same 1px visually-hidden box so
+   they stay in the accessibility tree. `.navLabel`, `.username` and
+   `.signOutLabel` are this module's; the theme toggle's label belongs to another
+   module, so it is matched by a structural selector — the last child of a
+   `.railRow` is always the label — rather than by name.
+
+   `.railRow` must be wrapped in `:global()`. A bare `.railRow` here would be
+   scoped and hashed to this module, matching nothing at runtime and silently
+   disabling the collapsed state. */
+[data-sidebar='collapsed'] .navLabel,
+[data-sidebar='collapsed'] .username,
+[data-sidebar='collapsed'] .signOutLabel,
+[data-sidebar='collapsed'] :global(.railRow) > :last-child {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+[data-sidebar='collapsed'] :global(.railRow) {
+  justify-content: center;
+  padding-inline: 0;
+  width: 100%;
+}
+
+/* ---- Narrow viewports -------------------------------------------------
+   Same collapsed baseline, then an explicit expand override after it so the
+   toggle button remains functional at any width. */
 @media (max-width: 1024px) {
-  .sidebar { padding: var(--space-6) var(--space-3); align-items: center; }
+  .sidebar {
+    width: var(--sidebar-w-collapsed);
+    padding-inline: var(--space-3);
+    align-items: center;
+  }
+  .head { justify-content: center; }
+  .brand { display: none; }
   .navLabel,
   .username,
-  .signOut { display: none; }
-  .brand {
-    font-size: 0;
-    width: 20px;
-    height: 20px;
+  .signOutLabel,
+  :global(.railRow) > :last-child {
+    position: absolute;
+    width: 1px;
+    height: 1px;
     overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
-  .brand::before {
-    content: 'P';
-    font-size: var(--text-base);
-    font-weight: 600;
-  }
-  .navItem { justify-content: center; padding-inline: 0; width: 100%; }
-  .profileLink { justify-content: center; }
+  :global(.railRow) { justify-content: center; padding-inline: 0; width: 100%; }
+}
+
+[data-sidebar='expanded'] .sidebar {
+  width: var(--sidebar-w);
+  padding-inline: var(--space-4);
+  align-items: stretch;
+}
+[data-sidebar='expanded'] .head { justify-content: space-between; }
+[data-sidebar='expanded'] .brand { display: block; }
+[data-sidebar='expanded'] .navLabel,
+[data-sidebar='expanded'] .username,
+[data-sidebar='expanded'] .signOutLabel,
+[data-sidebar='expanded'] :global(.railRow) > :last-child {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+}
+[data-sidebar='expanded'] :global(.railRow) {
+  justify-content: flex-start;
+  padding-inline: var(--space-3);
 }

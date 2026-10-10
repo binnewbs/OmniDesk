@@ -1,0 +1,28 @@
+/* The button reuses the global `.railRow` so it lines up with the nav items,
+   the profile link and sign-out without duplicating their geometry. Only what
+   is specific to it lives here. */
+.toggle:hover { color: var(--text); background: var(--nav-active); }
+
+.label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Icon and label are switched by the same attribute and always name the same
+   mode: while dark is active the row offers light (sun + "Light mode"), and
+   while light is active it offers dark (moon + "Dark mode").
+
+   The *default* rules are the dark case, not a neutral fallback. The root
+   layout's inline script only writes `data-theme` when the stored theme is
+   light, so in dark mode <html> carries no attribute at all and these defaults
+   are what apply. Declaring `.moon { display: none }` here is what stops both
+   icons from rendering at once — the grid would otherwise stack them. */
+.moon,
+.toDark { display: none; }
+
+[data-theme='light'] .moon { display: block; }
+[data-theme='light'] .toDark { display: inline; }
+[data-theme='light'] .sun,
+[data-theme='light'] .toLight { display: none; }
+

@@ -59,8 +59,13 @@ export interface Transaction {
   id: string;
   user_id: string;
   type: TransactionType;
-  /** PostgREST returns numeric as a string; parse with toNumber() at the boundary. */
-  amount: number | string;
+  /**
+   * PostgREST returns numeric as a string, but every repository parses it with
+   * toNumber() at the boundary (PLAN.md §15, decision 7), so by the time a
+   * Transaction reaches a component this is a real number. Typing it as
+   * `number | string` would let a consumer skip that parse with no type error.
+   */
+  amount: number;
   category: string;
   description: string;
   date: string;
@@ -73,7 +78,8 @@ export interface Subscription {
   id: string;
   user_id: string;
   name: string;
-  amount: number | string;
+  /** Parsed at the repository boundary; see Transaction.amount. */
+  amount: number;
   category: string;
   start_date: string | null;
   last_processed: string | null;

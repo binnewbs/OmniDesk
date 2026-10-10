@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { PageHeader } from '@/components/shell/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { StatCard } from '@/components/ui/StatCard';
@@ -151,10 +152,22 @@ export function CashflowScreen({
         }
       />
 
+      {/* Icons match the dashboard's equivalent stat cards exactly, so the same
+          three figures carry the same visual identity on both screens. */}
       <div className="grid grid--3">
-        <StatCard label="Balance" value={formatMoney(balance, currency)} />
-        <StatCard label="Income" value={formatMoney(incomeThisMonth, currency)} hint="this month" />
         <StatCard
+          icon={Wallet}
+          label="Balance"
+          value={formatMoney(balance, currency)}
+        />
+        <StatCard
+          icon={TrendingUp}
+          label="Income"
+          value={formatMoney(incomeThisMonth, currency)}
+          hint="this month"
+        />
+        <StatCard
+          icon={TrendingDown}
           label="Expenses"
           value={formatMoney(expensesThisMonth, currency)}
           hint="this month"

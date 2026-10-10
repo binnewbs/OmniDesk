@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { requireUserOrThrow } from '@/lib/supabase/auth';
 import { RepositoryError } from '@/lib/supabase/errors';
 import { ASSIGNMENT_PRIORITIES, ASSIGNMENT_STATUSES } from '@/lib/constants';
+import { assignmentStatusSchema, idParam } from '@/lib/validation/wire';
 import {
   changeStatus as changeStatusRepo,
   createAssignment,
@@ -109,11 +110,16 @@ export async function updateAssignmentAction(_prev: ActionState, formData: FormD
 
 export async function changeAssignmentStatusAction(
   id: string,
-  status: AssignmentStatus,
+  status: string,
 ): Promise<ActionState> {
+  // The wire carries strings, not the `AssignmentStatus` union; anything outside
+  // it would create a fourth column the board cannot render (PLAN.md §15, row 4).
+  const parsedStatus = assignmentStatusSchema.safeParse(status);
+  if (!parsedStatus.success) return { ok: false, message: 'Unknown status.' };
+
   try {
     const user = await requireUserOrThrow();
-    await changeStatusRepo(user.id, id, status);
+    await changeStatusRepo(user.id, idParam(id), parsedStatus.data);
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) {
@@ -126,7 +132,7 @@ export async function changeAssignmentStatusAction(
 export async function deleteAssignmentAction(id: string): Promise<ActionState> {
   try {
     const user = await requireUserOrThrow();
-    await softDeleteAssignment(user.id, id);
+    await softDeleteAssignment(user.id, idParam(id));
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) {
@@ -139,7 +145,7 @@ export async function deleteAssignmentAction(id: string): Promise<ActionState> {
 export async function undoDeleteAssignmentAction(id: string): Promise<ActionState> {
   try {
     const user = await requireUserOrThrow();
-    await restoreAssignment(user.id, id);
+    await restoreAssignment(user.id, idParam(id));
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) {

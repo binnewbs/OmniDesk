@@ -2,14 +2,13 @@
 
 import { useActionState, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, StickyNote, Trash, Trash2 } from 'lucide-react';
+import { StickyNote, Trash } from 'lucide-react';
 import { PageHeader } from '@/components/shell/PageHeader';
 import { GlobalSearch } from '@/components/shell/GlobalSearch';
 import { Button } from '@/components/ui/Button';
-import { IconButton } from '@/components/ui/Pill';
-import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/components/ui/Toast';
+import { useSubmitFeedback } from '@/hooks/useSubmitFeedback';
 import {
   createFolderAction,
   getNoteForEditorAction,
@@ -20,6 +19,7 @@ import {
   undoDeleteFolderAction,
   undoDeleteNoteAction,
 } from '@/lib/actions/notes';
+import { FolderList, NewFolderForm } from './FolderList';
 import { NoteCard, TrashNoteCard } from './NoteCard';
 import { NoteEditor } from './NoteEditor';
 import s from './NotesLayout.module.css';
@@ -27,6 +27,12 @@ import type { Note, NoteFolder } from '@/types/domain';
 
 /** 'all' | 'trash' | a folder id */
 type View = string;
+
+const without = (set: ReadonlySet<string>, id: string): ReadonlySet<string> => {
+  const next = new Set(set);
+  next.delete(id);
+  return next;
+};
 
 interface NotesScreenProps {
   /** Live notes for the default view; Trash notes arrive separately. */
@@ -43,28 +49,50 @@ export function NotesScreen({
   const router = useRouter();
   const { show } = useToast();
 
-  const [notes, setNotes] = useState(initialNotes);
-  const [folders, setFolders] = useState(initialFolders);
+  /**
+   * The lists are *not* mirrored into state. Server actions revalidate, so the
+   * props are always the authoritative rows — a restore, a pin or an editor
+   * autosave shows up on the next `router.refresh()` without a remount.
+   *
+   * `hiddenIds` covers only the gap between a soft delete and the refresh
+   * landing: the row leaves the grid immediately instead of lingering until the
+   * round trip finishes. It is cleared by the Undo in the toast, so a restored
+   * row is not filtered out of the fresh props.
+   */
+  const [hiddenIds, setHiddenIds] = useState<ReadonlySet<string>>(() => new Set());
+
   const [view, setView] = useState<View>('all');
   const [openNote, setOpenNote] = useState<Note | null>(null);
   const [creatingFolder, setCreatingFolder] = useState(false);
 
   const [folderState, folderAction, creating] = useActionState(createFolderAction, { ok: false });
 
+  /** Mutations revalidate on the server, so pull the authoritative rows back. */
+  const refresh = () => router.refresh();
+
+  // Close the inline form once the folder is actually created, and pull the new
+  // list back. Checking `folderState.ok` in a submit handler would read the
+  // previous result instead (see useSubmitFeedback).
+  useSubmitFeedback(folderState, creating, () => {
+    setCreatingFolder(false);
+    show({ tone: 'success', message: 'Folder created.' });
+    refresh();
+  });
+
   const isTrash = view === 'trash';
+
+  const notes = initialNotes;
+  const folders = initialFolders;
 
   // Rows shown, filtered client-side by the selected folder.
   const visible = useMemo(() => {
-    const base = isTrash ? trashed : notes;
+    const base = (isTrash ? trashed : notes).filter((n) => !hiddenIds.has(n.id));
     if (view === 'all' || isTrash) return base;
     return base.filter((n) => n.folder_id === view);
-  }, [notes, trashed, view, isTrash]);
+  }, [notes, trashed, view, isTrash, hiddenIds]);
 
   const pinned = visible.filter((n) => n.pinned);
   const recent = visible.filter((n) => !n.pinned);
-
-  /** Mutations revalidate on the server, so pull the authoritative rows back. */
-  const refresh = () => router.refresh();
 
   const onNewNote = async () => {
     const result = await createNoteAction(view === 'all' || isTrash ? null : view);
@@ -94,11 +122,17 @@ export function NotesScreen({
       show({ tone: 'error', message: result.message ?? 'Could not delete this note.' });
       return;
     }
-    setNotes((list) => list.filter((n) => n.id !== note.id));
+    setHiddenIds((prev) => new Set(prev).add(note.id));
     show({
       tone: 'success',
       message: 'Note moved to Trash.',
-      action: { label: 'Undo', run: () => undoDeleteNoteAction(note.id) },
+      action: {
+        label: 'Undo',
+        run: async () => {
+          const result = await undoDeleteNoteAction(note.id);
+          if (result.ok) setHiddenIds((prev) => without(prev, note.id));
+        },
+      },
     });
     refresh();
   };
@@ -129,12 +163,18 @@ export function NotesScreen({
       show({ tone: 'error', message: result.message ?? 'Could not delete this folder.' });
       return;
     }
-    setFolders((list) => list.filter((f) => f.id !== folder.id));
+    setHiddenIds((prev) => new Set(prev).add(folder.id));
     if (view === folder.id) setView('all');
     show({
       tone: 'success',
       message: `Folder "${folder.name}" removed. Its notes are kept.`,
-      action: { label: 'Undo', run: () => undoDeleteFolderAction(folder.id) },
+      action: {
+        label: 'Undo',
+        run: async () => {
+          const result = await undoDeleteFolderAction(folder.id);
+          if (result.ok) setHiddenIds((prev) => without(prev, folder.id));
+        },
+      },
     });
     refresh();
   };
@@ -155,81 +195,21 @@ export function NotesScreen({
       />
 
       <div className={s.layout}>
-        <Card className={s.folders}>
-          <h2 className={s.folders__title}>Folders</h2>
-
-          <button
-            type="button"
-            className={`${s.folderItem} ${view === 'all' ? s.folderItemActive : ''}`}
-            onClick={() => setView('all')}
-          >
-            <span className={s.folderLabel}>All notes</span>
-          </button>
-
-          {folders.map((folder) => (
-            <span
-              key={folder.id}
-              className={`${s.folderItem} ${view === folder.id ? s.folderItemActive : ''}`}
-            >
-              <button
-                type="button"
-                className={s.folderSelect}
-                onClick={() => setView(folder.id)}
-              >
-                <span className={s.folderLabel}>{folder.name}</span>
-              </button>
-              <span className={s.folderActions}>
-                <IconButton
-                  plain
-                  icon={Trash2}
-                  label={`Delete folder ${folder.name}`}
-                  onClick={() => onDeleteFolder(folder)}
-                />
-              </span>
-            </span>
-          ))}
-
-          <button
-            type="button"
-            className={`${s.folderItem} ${isTrash ? s.folderItemActive : ''}`}
-            onClick={() => setView('trash')}
-          >
-            <span className={s.folderLabel}>Trash</span>
-          </button>
-
-          {creatingFolder ? (
-            <form action={folderAction} className={s.newFolderForm}>
-              <input
-                className={s.newFolderInput}
-                name="name"
-                autoFocus
-                placeholder="Folder name"
-                aria-label="New folder name"
-              />
-              <span className={s.newFolderActions}>
-                <Button
-                  type="submit"
-                  variant="secondary"
-                  loading={creating}
-                  onClick={() => {
-                    if (folderState.ok) setCreatingFolder(false);
-                  }}
-                >
-                  Add
-                </Button>
-              </span>
-            </form>
-          ) : (
-            <button
-              type="button"
-              className={`${s.newFolder} dash-border`}
-              onClick={() => setCreatingFolder(true)}
-            >
-              <Plus size={16} strokeWidth={2} aria-hidden />
-              Folder
-            </button>
-          )}
-        </Card>
+        <FolderList
+          folders={folders}
+          view={view}
+          onSelect={setView}
+          onDelete={onDeleteFolder}
+          creating={creatingFolder}
+          onCreate={() => setCreatingFolder(true)}
+          newFolderForm={
+            <NewFolderForm
+              action={folderAction}
+              pending={creating}
+              error={folderState.errors?.name}
+            />
+          }
+        />
 
         <div className={s.gridArea}>
           {isTrash ? (

@@ -16,19 +16,6 @@ import { DEFAULT_TIMEZONE, weekdayIndexInZone } from '@/lib/timezone';
 /** The leading `YYYY-MM-DD` of any stored timestamp or date string. */
 const CALENDAR_DATE_RE = /^(\d{4})-(\d{2})-(\d{2})/;
 
-/**
- * Timezone rule (PLAN.md §13.2): timestamps are stored as UTC ISO strings, but
- * "this month" and "today" are computed in the local calendar, so the dashboard
- * is correct for users east and west of UTC on the first of a month.
- * These bounds are therefore local midnight, serialised to UTC.
- */
-export function monthBounds(date: Date): { start: string; end: string } {
-  return {
-    start: startOfMonth(date).toISOString(),
-    end: endOfMonth(date).toISOString(),
-  };
-}
-
 /** First instant of the month *after* `date`, as a UTC ISO string. */
 export function nextMonthStartISO(date: Date): string {
   return startOfMonth(new Date(date.getFullYear(), date.getMonth() + 1, 1)).toISOString();

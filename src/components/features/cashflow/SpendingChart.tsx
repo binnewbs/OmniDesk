@@ -114,15 +114,8 @@ export function SpendingChart({
               }}
               items={monthOptions}
               width={200}
-              trigger={({ ref, onClick, expanded }) => (
-                <button
-                  ref={ref}
-                  type="button"
-                  className={`chip ${s.monthChip}`}
-                  aria-expanded={expanded}
-                  aria-haspopup="listbox"
-                  onClick={onClick}
-                >
+              trigger={(props) => (
+                <button {...props} type="button" className={`chip ${s.monthChip}`}>
                   {mounted ? monthLabelInZone(anchor, timezone) : '—'}
                   <ChevronDown size={16} strokeWidth={2} aria-hidden />
                 </button>
@@ -177,7 +170,12 @@ export function SpendingChart({
           No spending recorded in {mounted ? monthLabelInZone(anchor, timezone) : '—'}.
         </p>
       ) : (
-        <BarChart data={buckets} height={180} formatValue={compact} />
+        <BarChart
+          data={buckets}
+          height={180}
+          formatValue={compact}
+          ariaLabel={`Spending by ${period === 'daily' ? 'day' : period === 'weekly' ? 'week' : 'month'} for ${mounted ? monthLabelInZone(anchor, timezone) : 'the selected period'}. Total spent ${precise(total)}, average ${precise(summary.average)} per ${period === 'monthly' ? 'month' : 'day'}, highest ${summary.highestLabel === '—' ? 'none' : summary.highestLabel} at ${precise(summary.highestValue)}.`}
+        />
       )}
       </>
       )}

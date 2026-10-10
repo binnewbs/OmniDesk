@@ -17,6 +17,7 @@ import {
   updateFolder,
   updateNote,
 } from '@/lib/repositories/notes';
+import { folderNameSchema, idParam, noteContentSchema, optionalIdParam } from '@/lib/validation/wire';
 import type { Note } from '@/types/domain';
 
 export interface ActionState {
@@ -34,9 +35,7 @@ function errors(err: z.ZodError): Record<string, string> {
   return out;
 }
 
-const folderSchema = z.object({
-  name: z.string().trim().min(1, 'Folder name is required').max(60, 'Name is too long'),
-});
+const folderSchema = z.object({ name: folderNameSchema });
 
 const FAIL = 'Something went wrong. Try again.';
 
@@ -79,7 +78,7 @@ export async function renameFolderAction(id: string, name: string): Promise<Acti
 export async function deleteFolderAction(id: string): Promise<ActionState> {
   try {
     const user = await requireUserOrThrow();
-    await softDeleteFolder(user.id, id);
+    await softDeleteFolder(user.id, idParam(id));
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) return { ok: false, message: FAIL };
@@ -90,7 +89,7 @@ export async function deleteFolderAction(id: string): Promise<ActionState> {
 export async function undoDeleteFolderAction(id: string): Promise<ActionState> {
   try {
     const user = await requireUserOrThrow();
-    await restoreFolder(user.id, id);
+    await restoreFolder(user.id, idParam(id));
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) return { ok: false, message: FAIL };
@@ -111,7 +110,7 @@ export async function createNoteAction(
 ): Promise<{ ok: boolean; note?: Note; message?: string }> {
   try {
     const user = await requireUserOrThrow();
-    const note = await createNote(user.id, '', folderId);
+    const note = await createNote(user.id, '', optionalIdParam(folderId));
     return { ok: true, note };
   } catch (error) {
     if (error instanceof RepositoryError) return { ok: false, message: FAIL };
@@ -121,9 +120,12 @@ export async function createNoteAction(
 
 /** Autosave from the note editor; stamps last_modified (epoch ms) each time. */
 export async function saveNoteAction(id: string, content: string): Promise<ActionState> {
+  const parsedContent = noteContentSchema.safeParse(content);
+  if (!parsedContent.success) return { ok: false, message: 'Note is too long.' };
+
   try {
     const user = await requireUserOrThrow();
-    await updateNote(user.id, id, { content });
+    await updateNote(user.id, idParam(id), { content: parsedContent.data });
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) return { ok: false, message: FAIL };
@@ -132,9 +134,11 @@ export async function saveNoteAction(id: string, content: string): Promise<Actio
 }
 
 export async function setNotePinnedAction(id: string, pinned: boolean): Promise<ActionState> {
+  if (typeof pinned !== 'boolean') return { ok: false, message: 'Invalid value.' };
+
   try {
     const user = await requireUserOrThrow();
-    await setPinned(user.id, id, pinned);
+    await setPinned(user.id, idParam(id), pinned);
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) return { ok: false, message: FAIL };
@@ -145,7 +149,7 @@ export async function setNotePinnedAction(id: string, pinned: boolean): Promise<
 export async function moveNoteToFolderAction(id: string, folderId: string | null): Promise<ActionState> {
   try {
     const user = await requireUserOrThrow();
-    await moveNote(user.id, id, folderId);
+    await moveNote(user.id, idParam(id), optionalIdParam(folderId));
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) return { ok: false, message: FAIL };
@@ -162,7 +166,7 @@ export async function getNoteForEditorAction(
 ): Promise<{ ok: boolean; note?: Note; message?: string }> {
   try {
     const user = await requireUserOrThrow();
-    const note = await getNote(user.id, id);
+    const note = await getNote(user.id, idParam(id));
     if (!note) return { ok: false, message: 'That note no longer exists.' };
 
     return {
@@ -185,7 +189,7 @@ export async function getNoteForEditorAction(
 export async function deleteNoteAction(id: string): Promise<ActionState> {
   try {
     const user = await requireUserOrThrow();
-    await softDeleteNote(user.id, id);
+    await softDeleteNote(user.id, idParam(id));
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) return { ok: false, message: FAIL };
@@ -196,7 +200,7 @@ export async function deleteNoteAction(id: string): Promise<ActionState> {
 export async function undoDeleteNoteAction(id: string): Promise<ActionState> {
   try {
     const user = await requireUserOrThrow();
-    await restoreNote(user.id, id);
+    await restoreNote(user.id, idParam(id));
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) return { ok: false, message: FAIL };
@@ -208,7 +212,7 @@ export async function undoDeleteNoteAction(id: string): Promise<ActionState> {
 export async function purgeNoteAction(id: string): Promise<ActionState> {
   try {
     const user = await requireUserOrThrow();
-    await purgeNote(user.id, id);
+    await purgeNote(user.id, idParam(id));
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) return { ok: false, message: FAIL };

@@ -8,6 +8,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Field';
 import { useToast } from '@/components/ui/Toast';
+import { useSubmitFeedback } from '@/hooks/useSubmitFeedback';
 import { saveProfileAction, type ActionState } from '@/lib/actions/profile';
 import s from './ProfileScreen.module.css';
 
@@ -68,18 +69,19 @@ export function ProfileScreen({ username, bio, avatar }: ProfileScreenProps) {
     img.src = url;
   };
 
-  const onSubmit = () => {
-    if (state.ok) {
-      show({ tone: 'success', message: 'Profile saved.' });
-      router.refresh();
-    }
-  };
+  // The feedback lives in an effect, not in onSubmit: inside a submit handler
+  // `state` is still the previous submission's result, so the toast would fire
+  // again on every later submit (see useSubmitFeedback).
+  useSubmitFeedback(state, pending, () => {
+    show({ tone: 'success', message: 'Profile saved.' });
+    router.refresh();
+  });
 
   return (
     <main className="page">
       <PageHeader title="Profile" subtitle="Your name, photo and bio" />
 
-      <form action={action} className={`card ${s.card}`} noValidate onSubmit={onSubmit}>
+      <form action={action} className={`card ${s.card}`} noValidate>
         {state.message && (
           <div className="alert alert--error" role="alert">
             {state.message}

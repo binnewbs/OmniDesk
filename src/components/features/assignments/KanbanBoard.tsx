@@ -14,11 +14,16 @@ import s from './Kanban.module.css';
 interface KanbanBoardProps {
   /** Owned by the parent so filters and the active modal stay in one place. */
   assignments: Assignment[];
-  onChange: (assignments: Assignment[]) => void;
+  /**
+   * Reports a status change rather than the whole next array, so the parent can
+   * apply it as an optimistic override on the server rows it already holds
+   * instead of taking ownership of the list.
+   */
+  onStatusChange: (id: string, status: AssignmentStatus) => void;
   onOpen: (assignment: Assignment) => void;
 }
 
-export function KanbanBoard({ assignments, onChange, onOpen }: KanbanBoardProps) {
+export function KanbanBoard({ assignments, onStatusChange, onOpen }: KanbanBoardProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const { show } = useToast();
 
@@ -58,13 +63,14 @@ export function KanbanBoard({ assignments, onChange, onOpen }: KanbanBoardProps)
 
     if (!from || !to || from === to) return;
 
-    // Optimistic: the card moves immediately, reverts if the action fails.
-    const previous = assignments;
-    onChange(assignments.map((a) => (a.id === id ? { ...a, status: to } : a)));
+    // Optimistic: the card moves immediately, then the action confirms it. The
+    // server rows are the source of truth, so nothing has to be cached here to
+    // roll back to — dropping the override is enough to put the card back.
+    onStatusChange(id, to);
 
     const result = await changeAssignmentStatusAction(id, to);
     if (!result.ok) {
-      onChange(previous);
+      onStatusChange(id, from);
       show({ tone: 'error', message: result.message ?? 'Could not move the assignment.' });
     }
   };

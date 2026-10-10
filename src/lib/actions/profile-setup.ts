@@ -5,11 +5,10 @@ import { createClient } from '@/lib/supabase/server';
 import { requireUserOrThrow } from '@/lib/supabase/auth';
 import { RepositoryError } from '@/lib/supabase/errors';
 import { revalidateAll } from '@/lib/revalidate';
-import { uploadAvatar } from '@/lib/repositories/profiles';
+import { updateProfile, uploadAvatar, type UpdateProfileInput } from '@/lib/repositories/profiles';
 import { AVATAR_MAX_BYTES } from '@/lib/constants';
-import { fieldErrors } from '@/lib/validation/auth';
+import { fieldErrors, profileSetupSchema } from '@/lib/validation/auth';
 import { profileSetupMetadata } from '@/lib/profile-setup-state';
-import { z } from 'zod';
 import { skipProfileSetupAction } from '@/lib/actions/auth';
 
 export { skipProfileSetupAction };
@@ -20,10 +19,6 @@ export interface ProfileSetupState {
   errors?: Record<string, string>;
 }
 
-const schema = z.object({
-  bio: z.string().max(280, 'Bio must be at most 280 characters'),
-});
-
 /**
  * "Continue to dashboard" for step 2 of signup. Handles the avatar upload in
  * the same action so a single submit covers the whole step.
@@ -32,13 +27,12 @@ export async function completeProfileSetupAction(
   _prev: ProfileSetupState,
   formData: FormData,
 ): Promise<ProfileSetupState> {
-  const parsed = schema.safeParse({ bio: formData.get('bio') ?? '' });
+  const parsed = profileSetupSchema.safeParse({ bio: formData.get('bio') ?? '' });
   if (!parsed.success) return { ok: false, errors: fieldErrors(parsed.error) };
 
   const user = await requireUserOrThrow();
-  const supabase = await createClient();
 
-  const patch: { bio: string; avatar?: string | null } = { bio: parsed.data.bio };
+  const patch: UpdateProfileInput = { bio: parsed.data.bio };
 
   const file = formData.get('avatar');
   if (file instanceof File && file.size > 0) {
@@ -60,14 +54,17 @@ export async function completeProfileSetupAction(
     }
   }
 
-  const { error } = await supabase
-    .from('profiles')
-    .update(patch)
-    .eq('user_id', user.id);
-
-  if (error) return { ok: false, message: 'Could not save your profile. Try again.' };
+  try {
+    await updateProfile(user.id, patch);
+  } catch (error) {
+    if (error instanceof RepositoryError) {
+      return { ok: false, message: 'Could not save your profile. Try again.' };
+    }
+    throw error;
+  }
 
   // Clear the onboarding flag so the app-shell guard stops redirecting here.
+  const supabase = await createClient();
   const { error: metaError } = await supabase.auth.updateUser({ data: profileSetupMetadata() });
   if (metaError) return { ok: false, message: 'Could not finish setup. Try again.' };
 

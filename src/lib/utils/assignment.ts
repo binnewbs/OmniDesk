@@ -1,4 +1,5 @@
 import { ASSIGNMENT_PRIORITIES, ASSIGNMENT_STATUSES } from '@/lib/constants';
+import type { PillTone } from '@/components/ui/Pill';
 import type { AssignmentStatus } from '@/types/domain';
 
 /**
@@ -23,6 +24,30 @@ export function normalizePriority(raw: string | null | undefined): string {
     (p) => p.toLowerCase() === (raw ?? '').trim().toLowerCase(),
   );
   return match ?? ASSIGNMENT_PRIORITIES[1]; // Medium
+}
+
+/**
+ * Which pill tone a priority should wear. Shared by the kanban cards and the
+ * dashboard's upcoming list so the two cannot disagree about what "High" looks
+ * like.
+ *
+ * Routing through `normalizePriority` means a legacy or hand-typed "HIGH" is
+ * still red, even though its *label* is rendered verbatim from the column — the
+ * colour is then right for every row, not just the well-formed ones.
+ *
+ * "Low" deliberately maps to the default tone: no colour. Colouring all three
+ * would make Medium shout as loudly as High and spend the signal on the common
+ * case instead of the urgent one.
+ */
+export function priorityTone(raw: string | null | undefined): PillTone {
+  switch (normalizePriority(raw)) {
+    case 'High':
+      return 'high';
+    case 'Medium':
+      return 'medium';
+    default:
+      return 'default';
+  }
 }
 
 /**

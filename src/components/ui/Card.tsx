@@ -14,14 +14,23 @@ interface CardProps {
   className?: string;
 }
 
+/**
+ * Title + optional leading icon. Exported because a card with a custom `header`
+ * — one carrying its own controls, like the Cashflow filters — cannot use
+ * `Card`'s own `title`/`icon` props, and would otherwise hand-roll the markup
+ * and lose the icon.
+ */
+export function CardHeading({ title, icon }: { title: string; icon?: LucideIcon }) {
+  return (
+    <span className="card__heading">
+      {icon && <span className="card__icon">{<Icon icon={icon} size={16} />}</span>}
+      <h2 className="card__title">{title}</h2>
+    </span>
+  );
+}
+
 export function Card({ title, action, header, icon, children, className }: CardProps) {
-  const heading =
-    title === undefined ? null : (
-      <span className="card__heading">
-        {icon && <span className="card__icon">{<Icon icon={icon} size={16} />}</span>}
-        <h2 className="card__title">{title}</h2>
-      </span>
-    );
+  const heading = title === undefined ? null : <CardHeading title={title} icon={icon} />;
 
   return (
     <section className={`card${className ? ` ${className}` : ''}`}>

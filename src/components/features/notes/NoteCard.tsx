@@ -44,15 +44,10 @@ export function NoteCard({
 
         <span className={s.preview}>
           {preview.length === 0 ? (
-            <span className={`${s.line} ${s.lineMuted}`} />
+            <span className={s.linePlaceholder} />
           ) : (
             preview.map((line, i) => (
-              <span
-                key={i}
-                className={s.line}
-                // Varying widths reproduce the reference's skeleton shape.
-                style={{ width: `${[92, 74, 48][i] ?? 60}%` }}
-              >
+              <span key={i} className={s.line}>
                 {line}
               </span>
             ))
@@ -87,7 +82,8 @@ export function TrashNoteCard({
   onPurge: (note: Note) => void;
 }) {
   const timezone = useUserTimezone();
-  const { title, preview } = splitNote(note.content);
+  // Only the title: a trashed note's body is deliberately not shown.
+  const { title } = splitNote(note.content);
 
   return (
     <div className={s.card}>
@@ -95,9 +91,11 @@ export function TrashNoteCard({
         <span className={s.title}>{title}</span>
       </span>
 
+      {/* Placeholders, not the content: a trashed note's body is deliberately
+          not shown. Two lines rather than three to leave room for the footer. */}
       <span className={s.preview}>
-        {preview.slice(0, 2).map((line, i) => (
-          <span key={i} className={`${s.line} ${s.lineMuted}`} />
+        {[0, 1].map((i) => (
+          <span key={i} className={s.linePlaceholder} />
         ))}
       </span>
 

@@ -5,7 +5,9 @@ import { createClient } from '@/lib/supabase/server';
 import { RepositoryError } from '@/lib/supabase/errors';
 import { revalidate, AFFECTS_CASHFLOW } from '@/lib/revalidate';
 import { createId } from '@/lib/utils/id';
-import { round2 } from '@/lib/utils/money';
+import { round2, toNumber } from '@/lib/utils/money';
+import { startOfMonthInZone, startOfNextMonthInZone } from '@/lib/timezone';
+import { getUserTimezone } from '@/lib/timezone.server';
 import type { Subscription } from '@/types/domain';
 
 const TABLE = 'subscriptions' as const;
@@ -26,7 +28,10 @@ export async function listSubscriptions(userId: string): Promise<Subscription[]>
     .order('start_date', { ascending: true });
 
   if (error) throw new RepositoryError('subscriptions.list', error);
-  return data ?? [];
+
+  // numeric arrives as a string; parse it once here so no consumer has to
+  // remember (PLAN.md §15, decision 7).
+  return (data ?? []).map((row) => ({ ...row, amount: toNumber(row.amount) }));
 }
 
 export interface NewSubscription {
@@ -60,7 +65,7 @@ export async function createSubscription(userId: string, input: NewSubscription)
   if (error) throw new RepositoryError('subscriptions.create', error);
 
   await revalidate(AFFECTS_CASHFLOW);
-  return data;
+  return { ...data, amount: toNumber(data.amount) };
 }
 
 export async function updateSubscription(userId: string, id: string, input: NewSubscription) {
@@ -78,7 +83,7 @@ export async function updateSubscription(userId: string, id: string, input: NewS
   if (error) throw new RepositoryError('subscriptions.update', error);
 
   await revalidate(AFFECTS_CASHFLOW);
-  return data;
+  return { ...data, amount: toNumber(data.amount) };
 }
 
 export async function softDeleteSubscription(userId: string, id: string) {
@@ -127,14 +132,21 @@ export async function materializeSubscriptions(userId: string, dateISO: string):
   if (listError) throw new RepositoryError('subscriptions.materialize', listError);
 
   const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const stamp = dateISO || now.toISOString();
+
+  // The month being materialised is the user's, not the server's: on a UTC host
+  // the last day of the month would skip or double-process a subscription.
+  const timezone = await getUserTimezone();
+  const monthStart = startOfMonthInZone(now, timezone);
+  const nextMonthStart = startOfNextMonthInZone(now, timezone);
 
   // Only ones due: started on or before the end of the target month, and not
   // already processed for it.
   const due = (subs ?? []).filter((s) => {
-    if (s.start_date && new Date(s.start_date) > monthStart) return false;
-    if (s.last_processed && new Date(s.last_processed) >= monthStart) return false;
+    const started = s.start_date ? new Date(s.start_date) : null;
+    if (started && started > monthStart) return false;
+    const processed = s.last_processed ? new Date(s.last_processed) : null;
+    if (processed && processed >= monthStart && processed < nextMonthStart) return false;
     return true;
   });
 
@@ -144,7 +156,7 @@ export async function materializeSubscriptions(userId: string, dateISO: string):
     id: createId(),
     user_id: userId,
     type: 'expense',
-    amount: round2(Number(s.amount)),
+    amount: round2(toNumber(s.amount)),
     category: s.category || 'Subscription',
     description: s.name,
     date: stamp,
@@ -159,6 +171,7 @@ export async function materializeSubscriptions(userId: string, dateISO: string):
   const { error: stampError } = await supabase
     .from(TABLE)
     .update({ last_processed: stamp, updated_at: stamp })
+    .eq('user_id', userId)
     .in(
       'id',
       due.map((s) => s.id),
@@ -170,8 +183,3 @@ export async function materializeSubscriptions(userId: string, dateISO: string):
   return due.length;
 }
 
-/** Σ subscription amounts — the dashboard's "Subscriptions / month" figure. */
-export async function subscriptionsTotal(userId: string): Promise<number> {
-  const subs = await listSubscriptions(userId);
-  return subs.reduce((sum, s) => sum + Number(s.amount), 0);
-}

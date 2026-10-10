@@ -2,10 +2,17 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Icon } from './Icon';
 
-type Tone = 'default' | 'accent';
+export type PillTone = 'default' | 'accent' | 'high' | 'medium';
 
-export function Pill({ children, tone = 'default' }: { children: ReactNode; tone?: Tone }) {
-  return <span className={`pill${tone === 'accent' ? ' pill--accent' : ''}`}>{children}</span>;
+const TONE_CLASS: Record<PillTone, string> = {
+  default: '',
+  accent: 'pill--accent',
+  high: 'pill--high',
+  medium: 'pill--medium',
+};
+
+export function Pill({ children, tone = 'default' }: { children: ReactNode; tone?: PillTone }) {
+  return <span className={`pill${TONE_CLASS[tone] ? ` ${TONE_CLASS[tone]}` : ''}`}>{children}</span>;
 }
 
 interface ChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {

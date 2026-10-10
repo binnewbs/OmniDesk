@@ -5,7 +5,22 @@
   display: grid;
   place-items: center;
   padding: var(--space-6);
-  background: rgb(0 0 0 / 55%);
+  background: var(--scrim);
+  /* Defocuses the page behind the dialog so the panel is the only sharp thing
+     on screen. The panel is a child of this element and paints on top of it, so
+     `backdrop-filter` — which only affects what is painted *behind* — leaves
+     the dialog itself crisp.
+
+     `-webkit-` is still required by Safari below 18. Where neither is
+     supported the scrim colour alone still dims the page, which is what the
+     overlay did before the blur was added, so this degrades rather than breaks.
+
+     The blur is deliberately not animated. Interpolating `backdrop-filter`
+     re-rasterises the entire viewport on every frame, which drops frames on
+     exactly the low-end devices least able to afford it; the opacity fade below
+     is enough of an entrance. */
+  -webkit-backdrop-filter: blur(var(--scrim-blur));
+  backdrop-filter: blur(var(--scrim-blur));
   animation: overlayIn 120ms ease;
 }
 

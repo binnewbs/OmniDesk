@@ -14,12 +14,32 @@ import { AssignmentModal } from './AssignmentModal';
 import type { Assignment } from '@/types/domain';
 
 export function AssignmentsScreen({ initial }: { initial: Assignment[] }) {
-  const [assignments, setAssignments] = useState(initial);
   const [course, setCourse] = useState<string>('all');
   const [priority, setPriority] = useState<string>('all');
   const [active, setActive] = useState<Assignment | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const router = useRouter();
+
+  /**
+   * The server rows stay authoritative — they are not copied into state, because
+   * a `router.refresh()` after a save would otherwise be discarded and the board
+   * would keep showing the list from mount time.
+   *
+   * A drag is the one case that has to feel instant, so the new status is layered
+   * on top as an override keyed by id. Once the refreshed props carry that status
+   * the override is a no-op, so it self-heals rather than needing a reset; the
+   * map is therefore bounded by the number of assignments, not by the number of
+   * drags. A failed drag clears its own override, which is the revert.
+   */
+  const [statusOverrides, setStatusOverrides] = useState<Record<string, string>>({});
+
+  const assignments = useMemo(
+    () =>
+      initial.map((a) =>
+        statusOverrides[a.id] !== undefined ? { ...a, status: statusOverrides[a.id] } : a,
+      ),
+    [initial, statusOverrides],
+  );
 
   const courses = useMemo(
     () => Array.from(new Set(assignments.map((a) => a.course).filter(Boolean))).sort(),
@@ -84,15 +104,8 @@ export function AssignmentsScreen({ initial }: { initial: Assignment[] }) {
                 { value: 'all', label: 'All priorities' },
                 ...ASSIGNMENT_PRIORITIES.map((p) => ({ value: p, label: p })),
               ]}
-              trigger={({ ref, onClick, expanded }) => (
-                <button
-                  ref={ref}
-                  type="button"
-                  className="chip"
-                  aria-expanded={expanded}
-                  aria-haspopup="listbox"
-                  onClick={onClick}
-                >
+              trigger={(props) => (
+                <button {...props} type="button" className="chip">
                   {priority === 'all' ? 'Priority' : priority}
                   <ChevronDown size={16} strokeWidth={2} aria-hidden />
                 </button>
@@ -107,15 +120,8 @@ export function AssignmentsScreen({ initial }: { initial: Assignment[] }) {
                 { value: 'all', label: 'All courses' },
                 ...courses.map((c) => ({ value: c, label: c })),
               ]}
-              trigger={({ ref, onClick, expanded }) => (
-                <button
-                  ref={ref}
-                  type="button"
-                  className="chip"
-                  aria-expanded={expanded}
-                  aria-haspopup="listbox"
-                  onClick={onClick}
-                >
+              trigger={(props) => (
+                <button {...props} type="button" className="chip">
                   {course === 'all' ? 'Course' : course}
                   <ChevronDown size={16} strokeWidth={2} aria-hidden />
                 </button>
@@ -129,7 +135,13 @@ export function AssignmentsScreen({ initial }: { initial: Assignment[] }) {
         }
       />
 
-      <KanbanBoard assignments={visible} onChange={setAssignments} onOpen={openEdit} />
+      <KanbanBoard
+        assignments={visible}
+        onStatusChange={(id, status) =>
+          setStatusOverrides((prev) => ({ ...prev, [id]: status }))
+        }
+        onOpen={openEdit}
+      />
 
       {/* Rendered only while open so a previous success cannot re-fire on reopen. */}
       {modalOpen && <AssignmentModal open onClose={onClose} assignment={active} />}

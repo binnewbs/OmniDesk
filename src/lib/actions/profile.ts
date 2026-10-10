@@ -1,10 +1,9 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
 import { requireUserOrThrow } from '@/lib/supabase/auth';
 import { RepositoryError } from '@/lib/supabase/errors';
 import { revalidate } from '@/lib/revalidate';
-import { uploadAvatar } from '@/lib/repositories/profiles';
+import { updateProfile, uploadAvatar, type UpdateProfileInput } from '@/lib/repositories/profiles';
 import { AVATAR_MAX_BYTES } from '@/lib/constants';
 import { fieldErrors, profileSchema } from '@/lib/validation/auth';
 
@@ -27,9 +26,8 @@ export async function saveProfileAction(
   if (!parsed.success) return { ok: false, errors: fieldErrors(parsed.error) };
 
   const user = await requireUserOrThrow();
-  const supabase = await createClient();
 
-  const patch: { username: string; bio: string; avatar?: string } = {
+  const patch: UpdateProfileInput = {
     username: parsed.data.username,
     bio: parsed.data.bio,
   };
@@ -53,13 +51,15 @@ export async function saveProfileAction(
     }
   }
 
-  const { error } = await supabase
-    .from('profiles')
-    .update(patch)
-    .eq('user_id', user.id);
-
-  if (error) {
-    return { ok: false, message: 'Could not save your profile. Try again.' };
+  // Goes through the repository so the write carries the RepositoryError
+  // wrapper like every other mutation, rather than reaching around it.
+  try {
+    await updateProfile(user.id, patch);
+  } catch (error) {
+    if (error instanceof RepositoryError) {
+      return { ok: false, message: 'Could not save your profile. Try again.' };
+    }
+    throw error;
   }
 
   // '/' is included because the sidebar renders the avatar and username.

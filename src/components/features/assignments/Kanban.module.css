@@ -97,8 +97,11 @@
   text-align: center;
 }
 
+/* The board stays three columns on a tablet: kanban columns are inherently
+   narrow and stacking them there would push the third status off-screen. The
+   gap and page padding tighten instead. */
 @media (max-width: 1024px) {
-  .board { grid-template-columns: repeat(3, 1fr); }
+  .board { gap: var(--space-3); }
 }
 
 @media (max-width: 768px) {

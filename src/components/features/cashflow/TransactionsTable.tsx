@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, Receipt, Trash2 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
+import { Card, CardHeading } from '@/components/ui/Card';
 import { Chip, Pill } from '@/components/ui/Pill';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatCalendarDate } from '@/lib/utils/date';
@@ -55,7 +55,9 @@ export function TransactionsTable({
     <Card
       header={
         <>
-          <h2 className="card__title">Transactions</h2>
+          {/* Same icon the dashboard's "Recent transactions" card uses, so the
+              two screens read as the same subject. */}
+          <CardHeading icon={Receipt} title="Transactions" />
           <div className={s.filters}>
             <Chip active={filter === 'all'} onClick={() => setFilter('all')}>
               All

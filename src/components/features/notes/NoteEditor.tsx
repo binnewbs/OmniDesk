@@ -12,6 +12,7 @@ import {
   moveNoteToFolderAction,
   saveNoteAction,
   setNotePinnedAction,
+  undoDeleteNoteAction,
 } from '@/lib/actions/notes';
 import type { Note, NoteFolder } from '@/types/domain';
 
@@ -65,7 +66,12 @@ export function NoteEditor({
       return;
     }
     onClose();
-    show({ tone: 'success', message: 'Note moved to Trash.' });
+    // Undo here too, matching every other soft-delete path in the app.
+    show({
+      tone: 'success',
+      message: 'Note moved to Trash.',
+      action: { label: 'Undo', run: () => undoDeleteNoteAction(note.id) },
+    });
     router.refresh();
   };
 

@@ -3,10 +3,9 @@ import { requireUser } from '@/lib/supabase/auth';
 import { listTransactions } from '@/lib/repositories/cashflow';
 import { listSubscriptions } from '@/lib/repositories/subscriptions';
 import { getSettings } from '@/lib/repositories/settings';
+import { getMonthTotals } from '@/lib/repositories/stats';
 import { CashflowScreen } from '@/components/features/cashflow/CashflowScreen';
 import { toNumber } from '@/lib/utils/money';
-import { isInCurrentMonthInZone } from '@/lib/timezone';
-import { getUserTimezone } from '@/lib/timezone.server';
 import type { Transaction, TransactionType } from '@/types/domain';
 
 export const metadata: Metadata = { title: 'Cashflow — Productivity Manager' };
@@ -18,16 +17,16 @@ function totalFor(rows: Transaction[], type: TransactionType): number {
 export default async function CashflowPage() {
   const user = await requireUser();
 
-  const [transactions, subscriptions, settings] = await Promise.all([
+  // The table and the chart both re-aggregate client-side on month and period
+  // change (PLAN.md §14), so the rows travel once; only the two "this month"
+  // figures are summed in Postgres, since nothing on the client needs the
+  // per-row breakdown for them (PLAN.md §6.5).
+  const [transactions, subscriptions, settings, totals] = await Promise.all([
     listTransactions(user.id),
     listSubscriptions(user.id),
     getSettings(),
+    getMonthTotals(user.id),
   ]);
-
-  // "This month" is the user's calendar month (PLAN.md §13.2). The server may
-  // run in UTC, so the zone comes from the `tz` cookie rather than from here.
-  const timezone = await getUserTimezone();
-  const monthRows = transactions.filter((t) => isInCurrentMonthInZone(t.date, timezone));
 
   const income = totalFor(transactions, 'income');
   const expenses = totalFor(transactions, 'expense');
@@ -40,8 +39,8 @@ export default async function CashflowPage() {
       // Balance is all-time from transactions only; subscriptions stay in their
       // own card until materialised (PLAN.md §15, decision 14).
       balance={income - expenses}
-      incomeThisMonth={totalFor(monthRows, 'income')}
-      expensesThisMonth={totalFor(monthRows, 'expense')}
+      incomeThisMonth={totals.income}
+      expensesThisMonth={totals.expenses}
     />
   );
 }

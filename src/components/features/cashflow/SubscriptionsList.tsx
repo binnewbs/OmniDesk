@@ -1,7 +1,7 @@
 'use client';
 
 import { Repeat, Trash2 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
+import { Card, CardHeading } from '@/components/ui/Card';
 import { Pill } from '@/components/ui/Pill';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
@@ -35,7 +35,7 @@ export function SubscriptionsList({
     <Card
       header={
         <>
-          <h2 className="card__title">Subscriptions</h2>
+          <CardHeading icon={Repeat} title="Subscriptions" />
           <button type="button" className={s.addLink} onClick={onAdd}>
             + Add
           </button>

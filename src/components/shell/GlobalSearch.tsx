@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Modal } from '@/components/ui/Modal';
 import { useModal } from '@/hooks/useModal';
 import { useGlobalSearchHotkey } from '@/hooks/useGlobalSearchHotkey';
@@ -18,6 +19,13 @@ const GROUPS: { key: Group; label: string; href: (id: string) => string }[] = [
   { key: 'classes', label: 'Classes', href: () => '/schedule' },
   { key: 'notes', label: 'Notes', href: () => '/notes' },
 ];
+
+/**
+ * Each search is four PostgREST queries, so typing a 12-character term would
+ * fire ~48 of them. This is the same 250ms a search field normally uses to
+ * avoid a request per keystroke.
+ */
+const SEARCH_DEBOUNCE_MS = 250;
 
 interface GlobalSearchProps {
   /**
@@ -42,30 +50,58 @@ export function GlobalSearch({ scope = 'all', onSelectNote }: GlobalSearchProps)
 
   useGlobalSearchHotkey(show);
 
-  const run = async (value: string) => {
-    setQuery(value);
-    if (value.trim().length < 2) {
-      setResults(null);
-      return;
-    }
-    setLoading(true);
-    try {
-      const all = await searchEverything(value);
-      // In notes scope only that group survives, so the modal shows one list.
-      setResults(
-        scope === 'notes'
-          ? { assignments: [], transactions: [], classes: [], notes: all.notes }
-          : all,
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+  /**
+   * The query is debounced, which means several searches can be in flight at
+   * once. Each run stamps a sequence number and only writes results if it is
+   * still the newest, so a slow early response cannot overwrite the answer to a
+   * later keystroke.
+   */
+  const seq = useRef(0);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const run = useCallback(
+    (value: string) => {
+      setQuery(value);
+
+      const trimmed = value.trim();
+      if (trimmed.length < 2) {
+        setResults(null);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      const mine = ++seq.current;
+
+      timer.current = setTimeout(async () => {
+        try {
+          const all = await searchEverything(trimmed);
+          if (mine !== seq.current) return;
+          // In notes scope only that group survives, so the modal shows one list.
+          setResults(
+            scope === 'notes'
+              ? { assignments: [], transactions: [], classes: [], notes: all.notes }
+              : all,
+          );
+        } finally {
+          if (mine === seq.current) setLoading(false);
+        }
+      }, SEARCH_DEBOUNCE_MS);
+    },
+    [scope],
+  );
+
+  // A pending timer would otherwise fire after the modal closed and write state
+  // for a query the user can no longer see.
+  useEffect(() => () => clearTimeout(timer.current), []);
 
   const reset = () => {
+    clearTimeout(timer.current);
+    seq.current++;
     hide();
     setQuery('');
     setResults(null);
+    setLoading(false);
   };
 
   const go = (href: string) => {
@@ -108,7 +144,11 @@ export function GlobalSearch({ scope = 'all', onSelectNote }: GlobalSearchProps)
         ) : loading ? (
           <p className="t-muted">Searching…</p>
         ) : total === 0 ? (
-          <p className="t-muted">No matches for &ldquo;{query}&rdquo;.</p>
+          <EmptyState
+            icon={Search}
+            title={`No matches for “${query.trim()}”`}
+            hint="Try a different word, or check the spelling."
+          />
         ) : (
           <div className={s.groups}>
             {GROUPS.filter((g) => !notesOnly || g.key === 'notes').map(

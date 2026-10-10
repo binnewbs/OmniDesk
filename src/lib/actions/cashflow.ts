@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { requireUserOrThrow } from '@/lib/supabase/auth';
 import { RepositoryError } from '@/lib/supabase/errors';
 import { CLASS_THEMES, TRANSACTION_TYPES, WEEKDAYS } from '@/lib/constants';
+import { currencySchema, idParam } from '@/lib/validation/wire';
 import { parseAmount } from '@/lib/utils/money';
 import {
   createClass,
@@ -124,7 +125,7 @@ export async function updateTransactionAction(_prev: ActionState, formData: Form
 export async function deleteTransactionAction(id: string): Promise<ActionState> {
   try {
     const user = await requireUserOrThrow();
-    await softDeleteTransaction(user.id, id);
+    await softDeleteTransaction(user.id, idParam(id));
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) return { ok: false, message: FAIL };
@@ -135,7 +136,7 @@ export async function deleteTransactionAction(id: string): Promise<ActionState> 
 export async function undoDeleteTransactionAction(id: string): Promise<ActionState> {
   try {
     const user = await requireUserOrThrow();
-    await restoreTransaction(user.id, id);
+    await restoreTransaction(user.id, idParam(id));
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) return { ok: false, message: FAIL };
@@ -210,7 +211,7 @@ export async function updateSubscriptionAction(_prev: ActionState, formData: For
 export async function deleteSubscriptionAction(id: string): Promise<ActionState> {
   try {
     const user = await requireUserOrThrow();
-    await softDeleteSubscription(user.id, id);
+    await softDeleteSubscription(user.id, idParam(id));
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) return { ok: false, message: FAIL };
@@ -221,7 +222,7 @@ export async function deleteSubscriptionAction(id: string): Promise<ActionState>
 export async function undoDeleteSubscriptionAction(id: string): Promise<ActionState> {
   try {
     const user = await requireUserOrThrow();
-    await restoreSubscription(user.id, id);
+    await restoreSubscription(user.id, idParam(id));
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) return { ok: false, message: FAIL };
@@ -244,9 +245,14 @@ export async function processSubscriptionsAction(): Promise<{ ok: boolean; count
 }
 
 export async function setCurrencyAction(currency: string): Promise<ActionState> {
+  // An unknown code would reach Intl.NumberFormat on every money render and
+  // throw RangeError, so it is rejected before it is ever persisted.
+  const parsed = currencySchema.safeParse(currency);
+  if (!parsed.success) return { ok: false, message: 'Unsupported currency.' };
+
   try {
     await requireUserOrThrow();
-    await updateCurrency(currency);
+    await updateCurrency(parsed.data);
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) {
@@ -334,7 +340,7 @@ export async function updateClassAction(_prev: ActionState, formData: FormData):
 export async function deleteClassAction(id: string): Promise<ActionState> {
   try {
     const user = await requireUserOrThrow();
-    await softDeleteClass(user.id, id);
+    await softDeleteClass(user.id, idParam(id));
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) return { ok: false, message: FAIL };
@@ -345,7 +351,7 @@ export async function deleteClassAction(id: string): Promise<ActionState> {
 export async function undoDeleteClassAction(id: string): Promise<ActionState> {
   try {
     const user = await requireUserOrThrow();
-    await restoreClass(user.id, id);
+    await restoreClass(user.id, idParam(id));
     return { ok: true };
   } catch (error) {
     if (error instanceof RepositoryError) return { ok: false, message: FAIL };

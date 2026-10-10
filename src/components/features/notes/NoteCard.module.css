@@ -75,20 +75,46 @@ button.card:hover { border-color: var(--border-input); }
   padding-top: var(--space-2);
 }
 
+/*
+ * A real line of note text.
+ *
+ * Deliberately has no background. An earlier version styled `.line` as a
+ * --skeleton bar and rendered the note's actual text into it, so every note with
+ * a body read as a permanently loading card, with a bar struck through the text
+ * and a 10px line-height clipping the descenders off words like "Beli Beras".
+ * The Dashboard fixed the same bug in DashboardScreen.module.css (`.noteLine`);
+ * these two must stay in step.
+ */
 .line {
   display: block;
-  height: 10px;
-  border-radius: var(--radius-full);
-  background: var(--skeleton);
+  min-height: 19px; /* one 13px line at 1.45, so the card does not resize */
   color: var(--muted);
   font-size: var(--text-muted);
-  line-height: 10px;
+  line-height: 1.45;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.lineMuted { background: transparent; }
+/*
+ * Empty space where a body line would be, so a title-only note keeps the same
+ * card height as one with a body and the footer does not jump between cards.
+ * This is reserved space, not a loading indicator, so it stays transparent —
+ * which is why it is no longer a modifier on `.line`.
+ */
+.linePlaceholder {
+  display: block;
+  min-height: 19px;
+}
+
+/* The reference's ragged right edge. On `:nth-child` rather than an inline
+   `style` so the same three widths apply to both the text and the placeholder. */
+.line:nth-child(1),
+.linePlaceholder:nth-child(1) { width: 92%; }
+.line:nth-child(2),
+.linePlaceholder:nth-child(2) { width: 74%; }
+.line:nth-child(3),
+.linePlaceholder:nth-child(3) { width: 48%; }
 
 .footer {
   margin-top: auto;
@@ -126,4 +152,6 @@ button.card:hover { border-color: var(--border-input); }
 }
 .trashButton:hover { background: var(--nav-active); }
 
-.trashDanger { color: var(--danger); }
+/* A destructive action, so `--destructive` rather than `--danger` — the latter
+   inverts to teal in light mode, which would make a delete button look safe. */
+.trashDanger { color: var(--destructive); }
