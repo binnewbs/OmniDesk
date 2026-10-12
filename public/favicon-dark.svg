@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none">
+  <!--
+    Favicon for DARK browser chrome: the light-tab mark mirrored, not a new design.
+
+    The app's text colour (#e6e8ec) reads 15.62:1 on a dark tab, where the black
+    used for light chrome would score 1.10:1 and vanish. Loaded only under
+    `prefers-color-scheme: dark`, so a light-theme browser never fetches it.
+
+    NB: no double hyphen anywhere in this comment; that is illegal in XML, and a
+    browser fails on a malformed favicon without logging anything.
+  -->
+  <circle cx="8" cy="8" r="6" fill="#e6e8ec"/>
+  <circle cx="24" cy="8" r="6" fill="#e6e8ec"/>
+  <circle cx="8" cy="24" r="6" fill="#e6e8ec"/>
+  <circle cx="24" cy="24" r="6" fill="#8b919c"/>
+</svg>
