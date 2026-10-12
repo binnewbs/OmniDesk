@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { normalizePriority, normalizeStatus, priorityTone, resolveDropStatus } from './assignment';
+import {
+  normalizePriority,
+  normalizeStatus,
+  priorityTone,
+  resolveDropStatus,
+  splitByCompletion,
+} from './assignment';
 
 describe('normalizeStatus', () => {
   it('matches the canonical column headers exactly', () => {
@@ -53,6 +59,53 @@ describe('priorityTone', () => {
     expect(priorityTone('')).toBe('medium');
   });
 });
+describe('splitByCompletion', () => {
+  const row = (status: string | null) => ({ status });
+
+  it('keeps finished work out of the upcoming list', () => {
+    // The regression this guards: the dashboard used to slice the first N of
+    // *every* assignment, so a Done item could top the "Upcoming" card.
+    const { upcoming } = splitByCompletion([row('Done'), row('To do'), row('In progress')]);
+    expect(upcoming.map((a) => a.status)).toEqual(['To do', 'In progress']);
+  });
+
+  it('reports the total across every status, so the card can tell its two empty states apart', () => {
+    const { total } = splitByCompletion([row('Done'), row('Done'), row('To do')]);
+    expect(total).toBe(3);
+  });
+
+  it('fills the list with unfinished work once the Done ones are removed', () => {
+    // Two finished rows sort first by due date, so the naive slice would have
+    // returned two rows for a limit of three.
+    const { upcoming } = splitByCompletion(
+      [row('Done'), row('Done'), row('To do'), row('In progress'), row('To do')],
+      3,
+    );
+    expect(upcoming).toHaveLength(3);
+  });
+
+  it('treats a hand-typed "DONE" as finished, since status is free text', () => {
+    const { upcoming } = splitByCompletion([row('  done '), row('To do')]);
+    expect(upcoming.map((a) => a.status)).toEqual(['To do']);
+  });
+
+  it('treats an unrecognised status as still to do, rather than dropping it', () => {
+    const { upcoming, total } = splitByCompletion([row('Backlog'), row(null)]);
+    expect(total).toBe(2);
+    expect(upcoming).toHaveLength(2);
+  });
+
+  it('returns an empty list when everything is done', () => {
+    const { upcoming, total } = splitByCompletion([row('Done'), row('Done')]);
+    expect(upcoming).toEqual([]);
+    expect(total).toBe(2);
+  });
+
+  it('handles an empty set', () => {
+    expect(splitByCompletion([])).toEqual({ upcoming: [], total: 0 });
+  });
+});
+
 describe('resolveDropStatus', () => {
   const rows = [
     { id: 'a1', status: 'To do' },

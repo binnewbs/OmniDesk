@@ -13,7 +13,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { QuickAddModal, type QuickAddKind } from './QuickAddModal';
 import { formatCalendarDate, normalizeDay } from '@/lib/utils/date';
 import { classTheme } from '@/lib/utils/schedule';
-import { priorityTone } from '@/lib/utils/assignment';
+import { normalizeStatus, priorityTone } from '@/lib/utils/assignment';
 import { formatAmount, formatMoney, toNumber } from '@/lib/utils/money';
 import { relativeInZone } from '@/lib/timezone';
 import { useUserTimezone } from '@/hooks/useUserTimezone';
@@ -30,7 +30,13 @@ interface DashboardScreenProps {
   username: string;
   stats: DashboardStats;
   transactions: Transaction[];
+  /** Already filtered to the unfinished ones; Done is not included. */
   assignments: Assignment[];
+  /**
+   * Every non-deleted assignment, finished ones included. Only used to choose
+   * between the card's two empty states, which look identical otherwise.
+   */
+  assignmentTotal: number;
   classes: ScheduleClass[];
   notes: Note[];
   currency: string;
@@ -41,6 +47,7 @@ export function DashboardScreen({
   stats,
   transactions,
   assignments,
+  assignmentTotal,
   classes,
   notes,
   currency,
@@ -112,19 +119,33 @@ export function DashboardScreen({
           title="Upcoming assignments"
         >
           {assignments.length === 0 ? (
-            <EmptyState icon={ClipboardList} title="No assignments yet" />
+            <EmptyState
+              icon={ClipboardList}
+              title={assignmentTotal === 0 ? 'No assignments yet' : 'All assignments done'}
+              hint={
+                assignmentTotal === 0
+                  ? undefined
+                  : `Nothing left — all ${assignmentTotal} finished.`
+              }
+            />
           ) : (
-            assignments.map((a) => (
-              <div key={a.id} className="rowItem">
-                <span className="rowItem__text">
-                  <span className="rowItem__title">{a.title}</span>
-                  <span className="rowItem__meta">
-                    {a.course} · {formatCalendarDate(a.due_date)}
+            assignments.map((a) => {
+              const status = normalizeStatus(a.status);
+              return (
+                <div key={a.id} className="rowItem">
+                  <span className="rowItem__text">
+                    <span className="rowItem__title">{a.title}</span>
+                    <span className="rowItem__meta">
+                      {a.course} · {formatCalendarDate(a.due_date)}
+                    </span>
                   </span>
-                </span>
-                <Pill tone={priorityTone(a.priority)}>{a.priority ?? 'Medium'}</Pill>
-              </div>
-            ))
+                  <span className={s.rowPills}>
+                    <Pill tone="default">{status}</Pill>
+                    <Pill tone={priorityTone(a.priority)}>{a.priority ?? 'Medium'}</Pill>
+                  </span>
+                </div>
+              );
+            })
           )}
         </Card>
 

@@ -22,3 +22,16 @@ export function classTheme(colorTheme: string | null | undefined): string {
 /** The tint modifier for an already-typed class. */
 export const themeOf = (klass: Pick<ScheduleClass, 'color_theme'>) =>
   classTheme(klass.color_theme);
+
+/**
+ * The swatch modifier for the colour picker: a solid dot in the class's colour.
+ *
+ * Separate from `.tint--themeN` because that paints a 13% fill plus a border,
+ * which is right for a block with text in it but nearly invisible as a bare 32px
+ * dot. Going through a token also means the picker shows the colour the block
+ * will actually be *in the current theme*, rather than the raw dark-theme hex
+ * the row was stored with.
+ */
+export function swatchTheme(colorTheme: string | null | undefined): string {
+  return `swatch--theme${themeIndex(colorTheme) + 1}`;
+}

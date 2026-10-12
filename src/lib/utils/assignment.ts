@@ -27,6 +27,29 @@ export function normalizePriority(raw: string | null | undefined): string {
 }
 
 /**
+ * Splits assignments into the unfinished ones a dashboard should surface and
+ * the count of everything, so the card can tell "you have nothing to do" apart
+ * from "everything is finished" — two states that look identical once Done rows
+ * are hidden.
+ *
+ * Filtering goes through `normalizeStatus` rather than `=== 'Done'`: status is
+ * free text in the schema, so a hand-typed "DONE" has to count as finished and
+ * stay out of a list of things still to do.
+ */
+export function splitByCompletion<T extends { status: string | null }>(
+  assignments: readonly T[],
+  limit = 3,
+): { upcoming: T[]; total: number } {
+  const rows = assignments as T[];
+
+  const upcoming = rows
+    .filter((a) => normalizeStatus(a.status) !== 'Done')
+    .slice(0, Math.max(0, limit));
+
+  return { upcoming, total: rows.length };
+}
+
+/**
  * Which pill tone a priority should wear. Shared by the kanban cards and the
  * dashboard's upcoming list so the two cannot disagree about what "High" looks
  * like.

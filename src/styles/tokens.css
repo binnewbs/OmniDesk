@@ -52,6 +52,11 @@
   --scrim:         rgb(0 0 0 / 60%); /* modal backdrop */
   --scrim-blur:    8px; /* how far the backdrop behind a dialog is defocused */
 
+  /* The logo's dimmed circle. Separate from `--muted` so the mark's own dimming
+     can be tuned without changing every piece of muted text in the app. Kept at
+     the same value as `--muted` today. */
+  --logo-dim:      #8b919c;
+
   /* Schedule class tints, cycled per class. Backdrop = tint + alpha suffix. */
   --theme-1: #7c9cff;
   --theme-2: #5fd0b0;
@@ -129,12 +134,20 @@
    dark one at a lower alpha instead. Like `--destructive`, it is a deliberate
    departure from "invert the bytes".
 
-   The schedule class tints (`--theme-1` … `--theme-4-bg`, defined above on
-   `:root`) are deliberately NOT repeated here. They are calendar colours, they
-   are chosen per class rather than per theme, and a class block must not
-   change colour when someone flips the theme. Everything below that section of
-   `:root` is layout, spacing and type, which are theme-independent and so are
-   not repeated either. */
+   The schedule class tints (`--theme-1` … `--theme-4-bg`) are the one group
+   that DOES vary by theme, and are overridden below. They used to be theme-fixed
+   on the principle that a class block should not change colour when someone
+   flips the theme. Measured on the light card surface, that principle shipped
+   four unreadable blocks — the same hues are pale pastel tints that only work
+   against a near-black background, landing between 1.46:1 and 1.96:1 on
+   `#ebe9e4`. So the tints are now re-picked per theme, the same way `--accent`
+   and `--priority-*` are: the *family* of colours stays fixed (blue / teal /
+   amber / violet, so a class is recognisably the same class either way), while
+   the specific value is tuned for the background it sits on. The values below
+   are darkened until the block's text clears 4.5:1 against its own 13% fill.
+
+   Everything else below this point on `:root` is layout, spacing and type, which
+   are theme-independent and so are not repeated. */
 [data-theme='light'] {
   color-scheme: light; /* native selects, checkboxes and scrollbars go light */
 
@@ -159,6 +172,8 @@
   --scrim:         rgb(24 24 27 / 45%); /* dark, not inverted — see the note above */
   /* `--scrim-blur` is deliberately not repeated: a defocus radius is
      theme-independent, so it stays inherited from `:root`. */
+  --logo-dim:      #746e63; /* #8b919c — the logo's dimmed circle, re-picked for
+                         the light surface, exactly as `--muted` is */
 
   /* Not inverted, on purpose — see the note on the dark theme's definition.
      Darkened from the dark theme's values because those are tuned for a
@@ -176,4 +191,28 @@
   --priority-medium:    #5f3e00;
   --priority-high-soft:   #8f1d1826;
   --priority-medium-soft: #5f3e0026;
+
+  /* Schedule class tints, darkened for the light surface — see the note in the
+     header of this block. Same four families as the dark theme, re-picked so the
+     block text clears AA against its own fill:
+
+       theme-1  #3b539e  4.92:1 on #d4d5db
+       theme-2  #0f5a49  5.48:1 on #ced8d1
+       theme-3  #7d4d14  4.86:1 on #ded6c9
+       theme-4  #6b3ba0  5.16:1 on #dbd2dc
+
+     The `-bg`/`-br` alphas match the dark theme's 13%/20% ratios, so a block's
+     fill density is unchanged between themes. */
+  --theme-1: #3b539e;
+  --theme-2: #0f5a49;
+  --theme-3: #7d4d14;
+  --theme-4: #6b3ba0;
+  --theme-1-bg: #3b539e21;
+  --theme-1-br: #3b539e33;
+  --theme-2-bg: #0f5a4921;
+  --theme-2-br: #0f5a4933;
+  --theme-3-bg: #7d4d1421;
+  --theme-3-br: #7d4d1433;
+  --theme-4-bg: #6b3ba021;
+  --theme-4-br: #6b3ba033;
 }

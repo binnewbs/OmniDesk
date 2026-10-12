@@ -61,6 +61,16 @@
 @media (max-width: 768px) {
   .twoByTwo { grid-template-columns: 1fr; }
 }
+/* An upcoming row now wears two pills (status, then priority). `rowItem` puts a
+   single pill on the right, so without a wrapper the status pill would stretch
+   to fill the space between the title and the priority pill. */
+.rowPills {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
 /*
  * A class in "Today's classes", tinted from its colour_theme exactly as on the
  * Schedule page. Layout only — the colours come from the shared global

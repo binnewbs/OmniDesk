@@ -15,6 +15,7 @@ import {
 import { usePathname } from 'next/navigation';
 import { NAV_ITEMS } from '@/lib/constants';
 import { Avatar } from '@/components/ui/Avatar';
+import { BrandLockup } from '@/components/ui/BrandLockup';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { Modal } from '@/components/ui/Modal';
@@ -53,7 +54,10 @@ export function Sidebar({ username, avatar }: SidebarProps) {
   return (
     <nav className={s.sidebar} aria-label="Main">
       <div className={s.head}>
-        <span className={s.brand}>ProduktifKu</span>
+        {/* Collapsed, `.brand` is `display: none` (Sidebar.module.css), so the
+            mark goes with the wordmark and the 36px toggle keeps the whole 64px
+            rail to itself — there is not room for both. */}
+        <BrandLockup className={s.brand} />
         <button
           type="button"
           className={s.toggle}

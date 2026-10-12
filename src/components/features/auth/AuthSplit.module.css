@@ -56,13 +56,22 @@
 /* ---- Right panel: the form, centered on both axes ---- */
 .form {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: var(--space-10);
+  gap: var(--space-6);
+}
+
+/* Only rendered under 1024px — see the media query at the foot of this file. */
+.mobileBrand {
+  display: none;
+  justify-content: center;
 }
 
 @media (max-width: 1024px) {
   .split { grid-template-columns: 1fr; }
   .panel { display: none; }
   .form { min-height: 100vh; }
+  .mobileBrand { display: flex; }
 }

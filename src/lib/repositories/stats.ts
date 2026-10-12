@@ -4,6 +4,7 @@ import { requireContext } from '@/lib/supabase/auth';
 import { RepositoryError } from '@/lib/supabase/errors';
 import { toNumber } from '@/lib/utils/money';
 import { listAssignments } from '@/lib/repositories/assignments';
+import { splitByCompletion } from '@/lib/utils/assignment';
 import { listSubscriptions } from '@/lib/repositories/subscriptions';
 import { listTodaysClasses } from '@/lib/repositories/schedule';
 import { listNotes } from '@/lib/repositories/notes';
@@ -135,10 +136,20 @@ export async function getRecentTransactions(userId: string, limit = 3): Promise<
   }));
 }
 
-/** The assignments card: the next few by due date. */
-export async function getUpcomingAssignments(userId: string, limit = 3): Promise<Assignment[]> {
+/**
+ * The assignments card: the next few *unfinished* assignments, plus the total
+ * count the card uses to tell "nothing to do" from "all finished".
+ *
+ * The Done filter lives here rather than in `listAssignments` because the
+ * Assignments page needs finished rows too — they are its third kanban column.
+ * Filtering at the repository's only caller would empty that column.
+ */
+export async function getDashboardAssignments(
+  userId: string,
+  limit = 3,
+): Promise<{ upcoming: Assignment[]; total: number }> {
   const all = await listAssignments(userId);
-  return all.slice(0, limit);
+  return splitByCompletion(all, limit);
 }
 
 /** Empty on the weekend, which is correct: the timetable is Mon–Fri only. */
@@ -157,11 +168,19 @@ export async function getDashboardData(userId: string) {
   const [stats, transactions, assignments, classes, notes, settings] = await Promise.all([
     getDashboardStats(userId),
     getRecentTransactions(userId, 2),
-    getUpcomingAssignments(userId, 3),
+    getDashboardAssignments(userId, 3),
     getTodaysClasses(userId),
     getPinnedNotes(userId, 4),
     getSettings(),
   ]);
 
-  return { stats, transactions, assignments, classes, notes, settings };
+  return {
+    stats,
+    transactions,
+    assignments: assignments.upcoming,
+    assignmentTotal: assignments.total,
+    classes,
+    notes,
+    settings,
+  };
 }

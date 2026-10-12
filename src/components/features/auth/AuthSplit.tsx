@@ -2,6 +2,7 @@
 
 import { Wallet, ClipboardList, Calendar, StickyNote, type LucideIcon } from 'lucide-react';
 import { Icon } from '@/components/ui/Icon';
+import { BrandLockup } from '@/components/ui/BrandLockup';
 import s from './AuthSplit.module.css';
 
 const FEATURES: { icon: LucideIcon; name: string; description: string }[] = [
@@ -19,7 +20,7 @@ export function AuthSplit({ children }: { children: React.ReactNode }) {
   return (
     <div className={s.split}>
       <aside className={s.panel}>
-        <span className={s.brand}>ProduktifKu</span>
+        <BrandLockup className={s.brand} />
 
         <div className={s.center}>
           <h1 className="t-hero">Everything you need to stay on top of student life.</h1>
@@ -39,10 +40,18 @@ export function AuthSplit({ children }: { children: React.ReactNode }) {
           </ul>
         </div>
 
-        <span className={s.footer}>&copy; Productivity Manager</span>
+        <span className={s.footer}>Productivity Manager</span>
       </aside>
 
-      <main className={s.form}>{children}</main>
+      <main className={s.form}>
+        {/* The left panel is `display: none` under 1024px, so on a phone this is
+            the only place the product is identified at all. Hidden above that,
+            where the panel already carries the lockup. */}
+        <span className={s.mobileBrand}>
+          <BrandLockup size={26} />
+        </span>
+        {children}
+      </main>
     </div>
   );
 }

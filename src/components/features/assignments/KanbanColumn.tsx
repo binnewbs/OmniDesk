@@ -5,7 +5,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-
 import { CSS } from '@dnd-kit/utilities';
 import { Pill } from '@/components/ui/Pill';
 import { formatCalendarDate, parseDateSafe } from '@/lib/utils/date';
-import { priorityTone } from '@/lib/utils/assignment';
+import { normalizeStatus, priorityTone } from '@/lib/utils/assignment';
 import s from './Kanban.module.css';
 import type { Assignment, AssignmentStatus } from '@/types/domain';
 
@@ -22,8 +22,10 @@ export function AssignmentCard({
 }) {
   const sortable = useSortable({ id: assignment.id, disabled: !draggable });
   const due = parseDateSafe(assignment.due_date);
+  // Normalised rather than compared raw: `status` is free text in the schema, so
+  // a row typed as "done" would otherwise keep rendering as overdue.
   const overdue =
-    assignment.status !== 'Done' && due !== null && due.getTime() < startOfTodayMs();
+    normalizeStatus(assignment.status) !== 'Done' && due !== null && due.getTime() < startOfTodayMs();
 
   const className = [
     s.card,

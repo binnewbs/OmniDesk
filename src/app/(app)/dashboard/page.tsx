@@ -22,6 +22,7 @@ export default async function DashboardPage() {
       stats={data.stats}
       transactions={data.transactions}
       assignments={data.assignments}
+      assignmentTotal={data.assignmentTotal}
       classes={data.classes}
       notes={data.notes}
       currency={data.settings.currency}

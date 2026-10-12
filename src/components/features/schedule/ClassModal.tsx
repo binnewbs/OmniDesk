@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/Toast';
 import { useSubmitFeedback } from '@/hooks/useSubmitFeedback';
 import { CLASS_THEMES, WEEKDAYS } from '@/lib/constants';
 import { currentWeekday } from '@/lib/utils/date';
+import { swatchTheme } from '@/lib/utils/schedule';
 import { useUserTimezone } from '@/hooks/useUserTimezone';
 import { useMounted } from '@/hooks/useMounted';
 import {
@@ -144,8 +145,7 @@ export function ClassModal({
                   className="sr-only"
                 />
                 <span
-                  className={s.swatchDot}
-                  style={{ background: hex }}
+                  className={`${s.swatchDot} ${swatchTheme(hex)}`}
                 />
                 <span className="sr-only">{hex}</span>
               </label>

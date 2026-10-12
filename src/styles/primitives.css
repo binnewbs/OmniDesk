@@ -31,6 +31,11 @@
 .card__heading { display: inline-flex; align-items: center; gap: var(--space-2); min-width: 0; }
 .card__icon { display: inline-grid; place-items: center; color: var(--muted); flex-shrink: 0; }
 
+/* Mark + wordmark. A global primitive because the sidebar and the auth panel
+   pair the logo with the name the same way and must not drift apart. The
+   wordmark keeps the caller's own class, so each place still sizes its text. */
+.brandLockup { display: inline-flex; align-items: center; gap: var(--space-2); min-width: 0; }
+
 /* Stat card: label and icon share the top row, so the value stays left-aligned
    down the column. */
 .stat__top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
@@ -208,6 +213,14 @@
 .tint--theme2 { background: var(--theme-2-bg); border: 1px solid var(--theme-2-br); color: var(--theme-2); }
 .tint--theme3 { background: var(--theme-3-bg); border: 1px solid var(--theme-3-br); color: var(--theme-3); }
 .tint--theme4 { background: var(--theme-4-bg); border: 1px solid var(--theme-4-br); color: var(--theme-4); }
+
+/* Solid dots for the schedule colour picker. Same tokens as the tints above, so
+   the swatch a user picks from is the colour the block will actually render in
+   the current theme — not the dark-theme hex the row happens to be stored with. */
+.swatch--theme1 { background: var(--theme-1); }
+.swatch--theme2 { background: var(--theme-2); }
+.swatch--theme3 { background: var(--theme-3); }
+.swatch--theme4 { background: var(--theme-4); }
 
 /* ---- Page scaffolding ---- */
 .page {

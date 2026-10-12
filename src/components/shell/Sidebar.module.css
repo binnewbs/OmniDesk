@@ -188,7 +188,10 @@
   align-items: stretch;
 }
 [data-sidebar='expanded'] .head { justify-content: space-between; }
-[data-sidebar='expanded'] .brand { display: block; }
+/* `inline-flex`, not `block`: `.brand` is the lockup's root, so restoring it to
+   `block` here would outrank `.brandLockup` and collapse the mark and wordmark
+   onto one line. This rule exists to undo the `display: none` above. */
+[data-sidebar='expanded'] .brand { display: inline-flex; }
 [data-sidebar='expanded'] .navLabel,
 [data-sidebar='expanded'] .username,
 [data-sidebar='expanded'] .signOutLabel,
