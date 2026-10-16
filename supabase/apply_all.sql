@@ -1,5 +1,5 @@
 -- ============================================================================
--- Productivity Manager — full schema.
+-- OmniDesk — full schema.
 -- Supabase Dashboard → SQL Editor → New query → paste this → Run.
 -- Idempotent: safe to run more than once.
 -- ============================================================================

@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { getUser } from '@/lib/supabase/server';
 import { ResetPasswordForm } from '@/components/features/auth/ResetPasswordForm';
 
-export const metadata: Metadata = { title: 'Reset password — Productivity Manager' };
+export const metadata: Metadata = { title: 'Reset password — OmniDesk' };
 
 export default async function ResetPasswordPage() {
   const user = await getUser();

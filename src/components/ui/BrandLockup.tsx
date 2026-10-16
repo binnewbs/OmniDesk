@@ -25,7 +25,7 @@ interface BrandLockupProps {
  * The mark carries `aria-hidden` (see `Logo`), so the accessible name is the
  * wordmark alone and nothing is announced twice.
  */
-export function BrandLockup({ label = 'ProduktifKu', size = 22, className }: BrandLockupProps) {
+export function BrandLockup({ label = 'OmniDesk', size = 22, className }: BrandLockupProps) {
   return (
     <span className={`brandLockup${className ? ` ${className}` : ''}`}>
       <Logo size={size} />

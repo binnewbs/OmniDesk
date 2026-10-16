@@ -1,4 +1,4 @@
-# Productivity Manager
+# OmniDesk
 
 A dark-mode student productivity app covering **Cashflow, Assignments, Schedule and Notes**.
 

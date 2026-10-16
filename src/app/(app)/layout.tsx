@@ -7,7 +7,7 @@ import { Sidebar } from '@/components/shell/Sidebar';
 import { AppProviders } from '@/hooks/useProviders';
 import s from './layout.module.css';
 
-export const metadata: Metadata = { title: 'Productivity Manager' };
+export const metadata: Metadata = { title: 'OmniDesk' };
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   // Every protected route sits behind this, so /dashboard and /cashflow both

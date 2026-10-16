@@ -5,7 +5,7 @@ import { getProfile, ensureProfile } from '@/lib/repositories/profiles';
 import { isProfileSetupComplete } from '@/lib/profile-setup-state';
 import { ProfileSetupForm } from '@/components/features/auth/ProfileSetupForm';
 
-export const metadata: Metadata = { title: 'Set up your profile — Productivity Manager' };
+export const metadata: Metadata = { title: 'Set up your profile — OmniDesk' };
 
 export default async function ProfileSetupPage() {
   const user = await getUser();

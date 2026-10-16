@@ -8,7 +8,7 @@ import { CashflowScreen } from '@/components/features/cashflow/CashflowScreen';
 import { toNumber } from '@/lib/utils/money';
 import type { Transaction, TransactionType } from '@/types/domain';
 
-export const metadata: Metadata = { title: 'Cashflow — Productivity Manager' };
+export const metadata: Metadata = { title: 'Cashflow — OmniDesk' };
 
 function totalFor(rows: Transaction[], type: TransactionType): number {
   return rows.filter((t) => t.type === type).reduce((sum, t) => sum + toNumber(t.amount), 0);

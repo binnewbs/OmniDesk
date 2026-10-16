@@ -1,4 +1,4 @@
-# Productivity Manager – UI Design Spec
+# OmniDesk – UI Design Spec
 
 A dark-mode, minimalist-but-not-bare, clean and modern web app for students. It manages **cashflow, assignments, schedule and notes**. This document describes the approved wireframes so you can implement the UI faithfully. Treat the wireframes as layout and style truth. Sample text in them is placeholder only.
 
@@ -52,7 +52,7 @@ Schedule class block tints (fill = color at ~13% opacity, text = full color), cy
 ## 3. App shell (all logged-in screens)
 
 - **Left sidebar**, 220px wide, 1px right border, padding 24/16.
-  - Top: app name "Productivity" (16px / 600).
+  - Top: app name "OmniDesk" (16px / 600).
   - Nav items (in order): **Dashboard** (`layout-dashboard`), **Cashflow** (`wallet`), **Assignments** (`clipboard-list`), **Schedule** (`calendar`), **Notes** (`sticky-note`).
   - Nav item: 10px/12px padding, radius 8, icon + label, muted color. Active item has `nav-active` background and `text` color.
   - Bottom: profile link with 32px circular avatar (`profiles.avatar`) and `profiles.username`.
@@ -106,7 +106,7 @@ Schedule class block tints (fill = color at ~13% opacity, text = full color), cy
 
 ### Auth screens (Login, Sign up, Profile setup)
 Shared **split layout** (no sidebar):
-- **Left half**: `surface` background with right border. App name at the top; centered block with a 32px headline ("Everything you need to stay on top of student life.") and four feature rows (Cashflow, Assignments, Schedule, Notes), each with a 40px outlined icon tile, name and one-line description; footer "© Productivity Manager".
+- **Left half**: `surface` background with right border. App name at the top; centered block with a 32px headline ("Everything you need to stay on top of student life.") and four feature rows (Cashflow, Assignments, Schedule, Notes), each with a 40px outlined icon tile, name and one-line description; footer "© OmniDesk".
 - **Right half**: vertically and horizontally centered form, max width 380, gap 24.
 
 **Login**: heading "Welcome back", fields Email and Password, "Forgot password?" link (accent, right-aligned), full-width **Sign in** button, "Create account" link.

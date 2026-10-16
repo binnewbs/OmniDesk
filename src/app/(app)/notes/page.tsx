@@ -3,7 +3,7 @@ import { requireUser } from '@/lib/supabase/auth';
 import { listFolders, listNotes } from '@/lib/repositories/notes';
 import { NotesScreen } from '@/components/features/notes/NotesScreen';
 
-export const metadata: Metadata = { title: 'Notes — Productivity Manager' };
+export const metadata: Metadata = { title: 'Notes — OmniDesk' };
 
 export default async function NotesPage() {
   const user = await requireUser();

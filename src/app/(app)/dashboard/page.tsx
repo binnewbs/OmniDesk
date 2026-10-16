@@ -5,7 +5,7 @@ import { getProfile } from '@/lib/repositories/profiles';
 import { getDashboardData } from '@/lib/repositories/stats';
 import { DashboardScreen } from '@/components/features/dashboard/DashboardScreen';
 
-export const metadata: Metadata = { title: 'Dashboard — Productivity Manager' };
+export const metadata: Metadata = { title: 'Dashboard — OmniDesk' };
 
 export default async function DashboardPage() {
   await requireProfileComplete();

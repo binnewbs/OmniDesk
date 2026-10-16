@@ -149,7 +149,7 @@ export function Sidebar({ username, avatar }: SidebarProps) {
         }
       >
         <p className={s.confirmText}>
-          You will be signed out of ProduktifKu. Any unsaved changes on this
+          You will be signed out of OmniDesk. Any unsaved changes on this
           screen will be lost.
         </p>
       </Modal>

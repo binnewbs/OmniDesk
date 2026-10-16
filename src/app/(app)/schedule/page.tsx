@@ -3,7 +3,7 @@ import { requireUser } from '@/lib/supabase/auth';
 import { listClasses } from '@/lib/repositories/schedule';
 import { ScheduleScreen } from '@/components/features/schedule/ScheduleScreen';
 
-export const metadata: Metadata = { title: 'Schedule — Productivity Manager' };
+export const metadata: Metadata = { title: 'Schedule — OmniDesk' };
 
 export default async function SchedulePage() {
   const user = await requireUser();

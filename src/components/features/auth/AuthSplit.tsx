@@ -40,7 +40,7 @@ export function AuthSplit({ children }: { children: React.ReactNode }) {
           </ul>
         </div>
 
-        <span className={s.footer}>Productivity Manager</span>
+        <span className={s.footer}>OmniDesk</span>
       </aside>
 
       <main className={s.form}>

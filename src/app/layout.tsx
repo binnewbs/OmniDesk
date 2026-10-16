@@ -11,7 +11,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Productivity Manager',
+  title: 'OmniDesk',
   description: 'Track income, expenses, assignments, classes and notes in one place.',
   /*
    * The favicon is declared here rather than as an `app/icon.svg` file because it

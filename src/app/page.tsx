@@ -11,4 +11,4 @@ export default async function RootPage() {
   redirect(isProfileSetupComplete(user) ? '/dashboard' : '/profile-setup');
 }
 
-export const metadata: Metadata = { title: 'Productivity Manager' };
+export const metadata: Metadata = { title: 'OmniDesk' };

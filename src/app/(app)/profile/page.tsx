@@ -3,7 +3,7 @@ import { requireUser } from '@/lib/supabase/auth';
 import { getProfile } from '@/lib/repositories/profiles';
 import { ProfileScreen } from '@/components/features/profile/ProfileScreen';
 
-export const metadata: Metadata = { title: 'Profile — Productivity Manager' };
+export const metadata: Metadata = { title: 'Profile — OmniDesk' };
 
 export default async function ProfilePage() {
   const user = await requireUser();
