@@ -55,12 +55,20 @@ button.card:hover { border-color: var(--border-input); }
 
 .header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: center;
   gap: var(--space-2);
+  /* Keeps the title and pin clear of the absolutely positioned trash button. */
+  padding-right: var(--space-8);
+}
+
+.pin {
+  flex-shrink: 0;
+  color: var(--accent);
 }
 
 .title {
+  flex: 1;
+  min-width: 0;
   font-size: var(--text-base);
   font-weight: 600;
   overflow: hidden;

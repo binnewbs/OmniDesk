@@ -1,6 +1,5 @@
-import { Trash2 } from 'lucide-react';
+import { Pin, Trash2 } from 'lucide-react';
 import s from './NoteCard.module.css';
-import { Pill } from '@/components/ui/Pill';
 import { relativeInZone } from '@/lib/timezone';
 import { useUserTimezone } from '@/hooks/useUserTimezone';
 import type { Note } from '@/types/domain';
@@ -38,8 +37,10 @@ export function NoteCard({
     <div className={s.card}>
       <button type="button" className={s.open} onClick={() => onOpen(note)}>
         <span className={s.header}>
+          {note.pinned && (
+            <Pin size={14} className={s.pin} role="img" aria-label="Pinned" />
+          )}
           <span className={s.title}>{title}</span>
-          {note.pinned && <Pill tone="accent">Pinned</Pill>}
         </span>
 
         <span className={s.preview}>
