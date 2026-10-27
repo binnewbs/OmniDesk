@@ -13,5 +13,6 @@
 }
 
 @media (max-width: 768px) {
-  .wrap { width: 100%; }
+  /* Sits beside the primary button rather than taking a whole row. */
+  .wrap { width: 96px; }
 }

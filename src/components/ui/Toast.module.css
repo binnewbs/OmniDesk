@@ -53,5 +53,13 @@
 }
 
 @media (max-width: 768px) {
-  .stack { left: var(--space-4); right: var(--space-4); bottom: var(--space-4); max-width: none; }
+  .stack {
+    left: var(--space-4);
+    right: var(--space-4);
+    /* Clear the bottom bar and the home indicator. */
+    bottom: calc(
+      var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px) + var(--space-4)
+    );
+    max-width: none;
+  }
 }

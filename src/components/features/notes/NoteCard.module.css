@@ -152,6 +152,16 @@ button.card:hover { border-color: var(--border-input); }
 }
 .trashButton:hover { background: var(--nav-active); }
 
+/* Touch devices have no hover, so the card's delete control must be visible
+   without one. */
+@media (hover: none) {
+  .delete {
+    width: 32px;
+    height: 32px;
+    opacity: 1;
+  }
+}
+
 /* A destructive action, so `--destructive` rather than `--danger` — the latter
    inverts to teal in light mode, which would make a delete button look safe. */
 .trashDanger { color: var(--destructive); }

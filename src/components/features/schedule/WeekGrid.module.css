@@ -113,4 +113,8 @@
 @media (max-width: 768px) {
   .grid { grid-template-columns: 1fr; }
   .dayView { max-width: none; }
+  .dayPicker { flex-wrap: wrap; }
+  /* Five stacked days with a 220px floor turned an empty timetable into a
+     screen and a half of blank cards. */
+  .day { min-height: 0; }
 }

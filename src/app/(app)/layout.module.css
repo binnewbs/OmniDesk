@@ -21,3 +21,10 @@
   /* Stops the scroll chain from bubbling to the document once .main hits its end. */
   overscroll-behavior: contain;
 }
+
+/* The mobile shell is a column: content scrolls, the bottom bar keeps its
+   natural height, and nothing ever sits underneath it. */
+@media (max-width: 768px) {
+  .shell { flex-direction: column; }
+  .main { flex: 1; min-height: 0; }
+}

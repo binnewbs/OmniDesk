@@ -106,4 +106,14 @@
 
 @media (max-width: 768px) {
   .board { grid-template-columns: 1fr; }
+  .column { min-height: 0; }
+
+  /* Stacked columns are the chosen phone layout. Vertical page scrolling must
+     win over dragging when a finger starts on a card, so dnd-kit's
+     `touch-action: none` is relaxed; the edit dialog still changes status. */
+  .card {
+    cursor: pointer;
+    touch-action: pan-y;
+  }
+  .card:active { cursor: pointer; }
 }

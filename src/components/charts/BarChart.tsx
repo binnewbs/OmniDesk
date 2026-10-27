@@ -58,14 +58,15 @@ export function BarChart({ data, height = 180, formatValue, ariaLabel }: BarChar
       : `${data.length} bars, all zero.`);
 
   return (
-    <svg
-      className={s.chart}
-      width="100%"
-      height={height}
-      viewBox={`0 0 ${width} ${height}`}
-      role="img"
-      aria-label={described}
-    >
+    <div className={s.scroll}>
+      <svg
+        className={s.chart}
+        width="100%"
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label={described}
+      >
       {/* y-axis labels: max, half, zero */}
       {[0, 0.5, 1].map((fraction) => (
         <text
@@ -111,6 +112,7 @@ export function BarChart({ data, height = 180, formatValue, ariaLabel }: BarChar
           </g>
         );
       })}
-    </svg>
+      </svg>
+    </div>
   );
 }

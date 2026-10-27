@@ -118,8 +118,7 @@
   text-overflow: ellipsis;
 }
 
-/* Confirmation dialog */
-.confirmText { font-size: var(--text-muted); color: var(--muted); line-height: 1.6; }
+/* Confirmation dialog styling lives with SignOutDialog. */
 
 /* ---- Collapsed ---------------------------------------------------------
    Labels are moved out of the flow rather than `display: none`, so they stay
@@ -205,4 +204,10 @@
 [data-sidebar='expanded'] :global(.railRow) {
   justify-content: flex-start;
   padding-inline: var(--space-3);
+}
+
+/* Phones use the bottom bar instead. The tablet rail (769–1024px) is owned by
+   the collapsed media query above. */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
 }

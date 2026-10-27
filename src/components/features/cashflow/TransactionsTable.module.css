@@ -4,6 +4,9 @@
   gap: var(--space-2);
 }
 
+/* The desktop table has sortable headers; phones hide them and use this menu. */
+.mobileSort { display: none; }
+
 .open {
   font-size: var(--text-base);
   color: var(--text);
@@ -19,6 +22,76 @@
 }
 
 @media (max-width: 768px) {
-  .description { max-width: 140px; }
-  .filters { flex-wrap: wrap; }
+  .filters {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .mobileSort { display: block; }
+
+  /* Rows become cards. The date, description, category and type keep their
+     places in the reading order, while amount and delete stay on the right. */
+  .table,
+  .table tbody { display: block; }
+
+  .table thead { display: none; }
+
+  .table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'date amount amount'
+      'desc desc desc'
+      'cat type actions';
+    column-gap: var(--space-3);
+    row-gap: 2px;
+    align-items: center;
+    padding: var(--space-3) 0;
+    border-top: 1px solid var(--row-divider);
+    cursor: pointer;
+  }
+
+  .table tr:first-child { border-top: none; padding-top: 0; }
+
+  .table td {
+    padding: 0;
+    border: 0;
+  }
+
+  .table td:nth-child(1) { grid-area: date; }
+  .table td:nth-child(2) { grid-area: desc; }
+  .table td:nth-child(3) { grid-area: cat; }
+  .table td:nth-child(4) { grid-area: type; justify-self: end; }
+  .table td:nth-child(5) { grid-area: amount; }
+  .table td:nth-child(6) { grid-area: actions; justify-self: end; }
+
+  .table td:nth-child(1) .open {
+    font-size: var(--text-label);
+    color: var(--muted);
+  }
+
+  .table td:nth-child(2) {
+    padding-block: 2px;
+    font-size: var(--text-base);
+    font-weight: 600;
+    max-width: none;
+    overflow: visible;
+    white-space: normal;
+  }
+
+  .table td:nth-child(3) {
+    font-size: var(--text-label);
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .table td:nth-child(5) {
+    text-align: right;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .description { max-width: none; }
 }

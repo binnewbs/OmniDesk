@@ -27,7 +27,7 @@
 .panel {
   display: flex;
   flex-direction: column;
-  width: 480px;
+  width: min(var(--modal-w, 480px), 100%);
   max-width: 100%;
   max-height: min(88vh, 900px);
   background: var(--surface);
@@ -92,6 +92,63 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
+@keyframes sheetIn {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* ---- Phone: every dialog is a bottom sheet -------------------------------
+   Full width and anchored to the bottom edge, where the thumb is. The header
+   and footer stay pinned because they are flex rows around the scrolling body.
+   Safe-area padding lives on the body/footer rather than the panel, so the
+   sheet still reaches the physical screen edge. */
 @media (max-width: 768px) {
-  .panel { max-height: 100vh; }
+  .overlay {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .panel {
+    width: 100%;
+    max-width: none;
+    max-height: 92vh;
+    max-height: 92dvh;
+    border-bottom: 0;
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+    animation: sheetIn 180ms ease;
+  }
+
+  /* A small handle makes the sheet read as something that can be dismissed. */
+  .panel::before {
+    content: '';
+    flex-shrink: 0;
+    width: 36px;
+    height: 4px;
+    margin: 8px auto 0;
+    border-radius: var(--radius-full);
+    background: var(--border-input);
+  }
+
+  .panelDrawer {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    border-left: 0;
+    animation: panelIn 160ms ease;
+  }
+
+  .header { padding: var(--space-4); }
+
+  .body {
+    padding: var(--space-4);
+    padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .footer {
+    flex-wrap: wrap;
+    padding: var(--space-3) var(--space-4);
+    padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+  }
 }

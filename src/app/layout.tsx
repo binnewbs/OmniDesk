@@ -42,6 +42,8 @@ export const metadata: Metadata = {
    signal the meta tag has, so a user who overrides the theme by hand still gets
    the system-matching one — the in-app toggle never touches this. */
 export const viewport: Viewport = {
+  // Lets the bottom bar pad itself around the home indicator on iOS.
+  viewportFit: 'cover',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#f1f0ed' },
     { media: '(prefers-color-scheme: dark)', color: '#0e0f12' },

@@ -20,11 +20,11 @@ export const AVATAR_BUCKET = 'avatars';
 /** Notes autosave debounce, in milliseconds. */
 export const NOTE_AUTOSAVE_MS = 800;
 
-/** nav items, in the order the sidebar lists them */
+/** nav items, in the order the sidebar and bottom bar list them */
 export const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Dashboard', icon: 'LayoutDashboard' },
-  { href: '/cashflow', label: 'Cashflow', icon: 'Wallet' },
-  { href: '/assignments', label: 'Assignments', icon: 'ClipboardList' },
-  { href: '/schedule', label: 'Schedule', icon: 'Calendar' },
-  { href: '/notes', label: 'Notes', icon: 'StickyNote' },
+  { href: '/dashboard', label: 'Dashboard', shortLabel: 'Home', icon: 'LayoutDashboard' },
+  { href: '/cashflow', label: 'Cashflow', shortLabel: 'Money', icon: 'Wallet' },
+  { href: '/assignments', label: 'Assignments', shortLabel: 'Tasks', icon: 'ClipboardList' },
+  { href: '/schedule', label: 'Schedule', shortLabel: 'Schedule', icon: 'Calendar' },
+  { href: '/notes', label: 'Notes', shortLabel: 'Notes', icon: 'StickyNote' },
 ] as const;

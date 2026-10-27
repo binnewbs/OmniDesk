@@ -15,3 +15,9 @@
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-input);
 }
+
+/* Phones keep the icon and drop the word, so the search control does not crowd
+   the primary action beside it. The aria-label above still names it. */
+@media (max-width: 768px) {
+  .searchLabel { display: none; }
+}

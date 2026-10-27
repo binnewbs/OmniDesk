@@ -4,6 +4,7 @@ import { getUser } from '@/lib/supabase/server';
 import { getProfile } from '@/lib/repositories/profiles';
 import { getUserTimezone } from '@/lib/timezone.server';
 import { Sidebar } from '@/components/shell/Sidebar';
+import { BottomNav } from '@/components/shell/BottomNav';
 import { AppProviders } from '@/hooks/useProviders';
 import s from './layout.module.css';
 
@@ -29,6 +30,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <div className={s.shell}>
         <Sidebar username={profile?.username ?? null} avatar={profile?.avatar ?? null} />
         <div className={s.main}>{children}</div>
+        <BottomNav username={profile?.username ?? null} avatar={profile?.avatar ?? null} />
       </div>
     </AppProviders>
   );

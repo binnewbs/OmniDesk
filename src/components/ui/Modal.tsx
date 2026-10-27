@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useMounted } from '@/hooks/useMounted';
@@ -111,7 +111,11 @@ export function Modal({
         aria-modal="true"
         aria-label={title}
         className={variant === 'drawer' ? s.panelDrawer : s.panel}
-        style={width && variant === 'modal' ? { width, maxWidth: 'calc(100vw - var(--space-8))' } : undefined}
+        style={
+          width && variant === 'modal'
+            ? ({ '--modal-w': `${width}px` } as CSSProperties)
+            : undefined
+        }
         onMouseDown={(e) => e.stopPropagation()}
       >
         <header className={s.header}>

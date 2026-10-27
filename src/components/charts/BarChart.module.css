@@ -4,6 +4,24 @@
   overflow: visible;
 }
 
+/* On phones the SVG is given a minimum width and allowed to scroll instead of
+   shrinking its labels to unreadable sizes. Desktop is unaffected. */
+.scroll { width: 100%; }
+
+@media (max-width: 768px) {
+  .scroll {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  .chart { min-width: 680px; }
+
+  /* The SVG scales its viewBox down, so 12 viewBox units became ~7px on a
+     phone. Bumping the unit size keeps the axis labels legible while the
+     wrapper above provides the horizontal room. */
+  .label { font-size: 16px; }
+}
+
 .bar {
   fill: var(--chart-bar);
   transition: fill var(--transition);

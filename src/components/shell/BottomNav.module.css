@@ -1,0 +1,85 @@
+/* Hidden on desktop; the rail owns navigation there. */
+.nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .nav {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    flex-shrink: 0;
+    height: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+
+  .item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+    padding: 4px 2px;
+    color: var(--muted);
+    transition: color var(--transition);
+  }
+
+  .item:hover,
+  .item[aria-current='page'],
+  .item[aria-expanded='true'] {
+    color: var(--accent);
+  }
+
+  /* A short accent rule, rather than a filled pill, keeps the six tabs light. */
+  .item[aria-current='page']::before,
+  .item[aria-expanded='true']::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 22px;
+    height: 2px;
+    border-radius: var(--radius-full);
+    background: var(--accent);
+  }
+
+  .icon {
+    display: grid;
+    place-items: center;
+    height: 22px;
+  }
+
+  .label {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 10px;
+    line-height: 1.2;
+  }
+}
+
+/* ---- Account sheet ---- */
+.account {
+  border-top: none;
+  padding-top: 0;
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.action {
+  color: var(--destructive);
+  font-weight: 500;
+}
+
+.action:hover {
+  background: var(--destructive-soft);
+  color: var(--destructive);
+}

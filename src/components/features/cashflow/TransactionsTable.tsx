@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ArrowDown, ArrowUp, Receipt, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronDown, Receipt, Trash2 } from 'lucide-react';
 import { Card, CardHeading } from '@/components/ui/Card';
 import { Chip, Pill } from '@/components/ui/Pill';
+import { Dropdown } from '@/components/ui/Dropdown';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatCalendarDate } from '@/lib/utils/date';
 import { formatAmount, toNumber } from '@/lib/utils/money';
@@ -13,6 +14,15 @@ import s from './TransactionsTable.module.css';
 type Filter = 'all' | TransactionType;
 type SortKey = 'date' | 'amount';
 type SortDir = 'asc' | 'desc';
+
+/** The desktop table sorts from its headers; on phones those headers are hidden,
+    so the same four states live in one compact menu instead. */
+const SORT_OPTIONS = [
+  { value: 'date:desc', label: 'Newest first' },
+  { value: 'date:asc', label: 'Oldest first' },
+  { value: 'amount:desc', label: 'Highest amount' },
+  { value: 'amount:asc', label: 'Lowest amount' },
+];
 
 interface TransactionsTableProps {
   transactions: Transaction[];
@@ -49,6 +59,12 @@ export function TransactionsTable({
     }
   };
 
+  const setSort = (value: string) => {
+    const [key, dir] = value.split(':') as [SortKey, SortDir];
+    setSortKey(key);
+    setSortDir(dir);
+  };
+
   const SortIcon = sortDir === 'asc' ? ArrowUp : ArrowDown;
 
   return (
@@ -68,6 +84,22 @@ export function TransactionsTable({
             <Chip active={filter === 'expense'} onClick={() => setFilter('expense')}>
               Expense
             </Chip>
+
+            <div className={s.mobileSort}>
+              <Dropdown
+                value={`${sortKey}:${sortDir}`}
+                onChange={setSort}
+                align="end"
+                width={180}
+                items={SORT_OPTIONS}
+                trigger={(props) => (
+                  <button {...props} type="button" className="chip">
+                    Sort
+                    <ChevronDown size={16} strokeWidth={2} aria-hidden />
+                  </button>
+                )}
+              />
+            </div>
           </div>
         </>
       }
@@ -79,7 +111,7 @@ export function TransactionsTable({
           hint={filter === 'all' ? 'Add your first one with + Transaction.' : undefined}
         />
       ) : (
-        <table className="table">
+        <table className={`table ${s.table}`}>
           <thead>
             <tr>
               <th>
@@ -106,7 +138,18 @@ export function TransactionsTable({
             {visible.map((t) => {
               const amount = toNumber(t.amount);
               return (
-                <tr key={t.id} className="table__row">
+                <tr
+                  key={t.id}
+                  className="table__row"
+                  onClick={(e) => {
+                    // On phones the whole card is the edit target. The date
+                    // button stays the accessible control; delete keeps its
+                    // own click.
+                    if (!window.matchMedia('(max-width: 768px)').matches) return;
+                    if ((e.target as HTMLElement).closest('button')) return;
+                    onOpen(t);
+                  }}
+                >
                   <td>
                     <button
                       type="button"

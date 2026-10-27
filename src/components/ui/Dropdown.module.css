@@ -3,11 +3,14 @@
   display: inline-flex;
 }
 
+/* Desktop popover. The width is a custom property so the mobile sheet can
+   override it without `!important`. */
 .menu {
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
   z-index: 40;
+  width: var(--dd-w, 180px);
   max-height: 280px;
   overflow-y: auto;
   padding: var(--space-1);
@@ -19,6 +22,10 @@
 .menuEnd {
   left: auto;
   right: 0;
+}
+
+.backdrop {
+  display: none;
 }
 
 .item {
@@ -40,4 +47,44 @@
 .itemActive {
   background: var(--nav-active);
   color: var(--accent);
+}
+
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* Phones get the same choices as a full-width action sheet, which is easier to
+   hit than a 180px popover near the top of a narrow screen. */
+@media (max-width: 768px) {
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 69;
+    background: var(--scrim);
+    border: 0;
+  }
+
+  .menu {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 70;
+    width: 100%;
+    max-height: min(60vh, 420px);
+    max-height: min(60dvh, 420px);
+    padding: var(--space-2);
+    padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+    border-bottom: 0;
+    animation: sheetUp 160ms ease;
+  }
+
+  .menuEnd { left: 0; right: 0; }
+
+  .item {
+    height: 48px;
+    padding-inline: var(--space-4);
+    font-size: var(--text-base);
+  }
 }

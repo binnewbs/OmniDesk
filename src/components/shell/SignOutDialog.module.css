@@ -1,0 +1,5 @@
+.text {
+  font-size: var(--text-muted);
+  color: var(--muted);
+  line-height: 1.6;
+}

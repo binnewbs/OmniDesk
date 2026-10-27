@@ -1,37 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  LayoutDashboard,
-  Wallet,
-  ClipboardList,
-  Calendar,
-  StickyNote,
-  LogOut,
-  PanelLeftClose,
-  PanelLeftOpen,
-  type LucideIcon,
-} from 'lucide-react';
+import { LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { NAV_ITEMS } from '@/lib/constants';
 import { Avatar } from '@/components/ui/Avatar';
 import { BrandLockup } from '@/components/ui/BrandLockup';
-import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
-import { Modal } from '@/components/ui/Modal';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useModal } from '@/hooks/useModal';
 import { useSidebarState } from '@/hooks/useSidebarState';
-import { signOutAction } from '@/lib/actions/auth';
+import { NAV_ICONS } from './navIcons';
+import { SignOutDialog } from './SignOutDialog';
 import s from './Sidebar.module.css';
-
-const ICONS: Record<string, LucideIcon> = {
-  LayoutDashboard,
-  Wallet,
-  ClipboardList,
-  Calendar,
-  StickyNote,
-};
 
 interface SidebarProps {
   username: string | null;
@@ -73,7 +54,7 @@ export function Sidebar({ username, avatar }: SidebarProps) {
 
       <ul className={s.nav}>
         {NAV_ITEMS.map((item) => {
-          const IconCmp = ICONS[item.icon];
+          const IconCmp = NAV_ICONS[item.icon];
           // Exact match, with a "/" prefix so / and /dashboard agree.
           const active = pathname === item.href;
 
@@ -127,32 +108,9 @@ export function Sidebar({ username, avatar }: SidebarProps) {
       </div>
 
       {/* Signing out is destructive and the click is easy to make by accident on
-          a rail this narrow, so it asks first. The real action stays a server
-          form: the dialog's confirm button submits it, which keeps sign-out
-          working with JS disabled up to the point of the confirmation. */}
-      <Modal
-        open={confirm.open}
-        onClose={confirm.hide}
-        title="Sign out?"
-        width={420}
-        footer={
-          <>
-            <Button variant="secondary" onClick={confirm.hide}>
-              Cancel
-            </Button>
-            <form action={signOutAction}>
-              <Button type="submit" variant="danger" iconLeft={LogOut}>
-                Sign out
-              </Button>
-            </form>
-          </>
-        }
-      >
-        <p className={s.confirmText}>
-          You will be signed out of OmniDesk. Any unsaved changes on this
-          screen will be lost.
-        </p>
-      </Modal>
+          a rail this narrow, so it asks first. The same dialog is used by the
+          mobile account sheet. */}
+      <SignOutDialog open={confirm.open} onClose={confirm.hide} />
     </nav>
   );
 }

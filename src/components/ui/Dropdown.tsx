@@ -1,6 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import { ChevronDown } from 'lucide-react';
 import s from './Dropdown.module.css';
 
@@ -138,29 +146,42 @@ export function Dropdown({
       })}
 
       {open && (
-        <ul
-          className={`${s.menu} ${align === 'end' ? s.menuEnd : ''}`}
-          role="listbox"
-          id={listId}
-          aria-activedescendant={items[activeIndex] ? optionId(activeIndex) : undefined}
-          style={{ width }}
-        >
-          {items.map((item, index) => (
-            <li key={item.value}>
-              <button
-                type="button"
-                id={optionId(index)}
-                role="option"
-                aria-selected={item.value === value}
-                className={`${s.item} ${index === activeIndex ? s.itemActive : ''}`}
-                onMouseEnter={() => setActiveIndex(index)}
-                onClick={() => commit(index)}
-              >
-                {item.label}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <>
+          {/* Mobile-only scrim. It is display:none on desktop, where the menu is
+              an anchored popover and clicking outside is enough. */}
+          <button
+            type="button"
+            className={s.backdrop}
+            tabIndex={-1}
+            aria-hidden
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setOpen(false)}
+          />
+
+          <ul
+            className={`${s.menu} ${align === 'end' ? s.menuEnd : ''}`}
+            role="listbox"
+            id={listId}
+            aria-activedescendant={items[activeIndex] ? optionId(activeIndex) : undefined}
+            style={{ '--dd-w': `${width}px` } as CSSProperties}
+          >
+            {items.map((item, index) => (
+              <li key={item.value}>
+                <button
+                  type="button"
+                  id={optionId(index)}
+                  role="option"
+                  aria-selected={item.value === value}
+                  className={`${s.item} ${index === activeIndex ? s.itemActive : ''}`}
+                  onMouseEnter={() => setActiveIndex(index)}
+                  onClick={() => commit(index)}
+                >
+                  {item.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </div>
   );

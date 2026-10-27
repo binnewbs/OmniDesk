@@ -120,8 +120,8 @@ export function GlobalSearch({ scope = 'all', onSelectNote }: GlobalSearchProps)
 
   return (
     <>
-      <Button variant="secondary" iconLeft={Search} onClick={show}>
-        Search
+      <Button variant="secondary" iconLeft={Search} onClick={show} aria-label="Search">
+        <span className={s.searchLabel}>Search</span>
       </Button>
 
       <Modal open={open} onClose={reset} title="Search" width={560}>

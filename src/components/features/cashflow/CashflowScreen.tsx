@@ -154,7 +154,7 @@ export function CashflowScreen({
 
       {/* Icons match the dashboard's equivalent stat cards exactly, so the same
           three figures carry the same visual identity on both screens. */}
-      <div className="grid grid--3">
+      <div className={s.stats}>
         <StatCard
           icon={Wallet}
           label="Balance"
