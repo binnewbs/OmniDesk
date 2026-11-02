@@ -142,6 +142,26 @@ export async function softDeleteAssignment(userId: string, id: string) {
   await revalidate(AFFECTS_ASSIGNMENTS);
 }
 
+/**
+ * The Done column's Clear button: one statement for the whole batch rather
+ * than a round trip per card. Same soft delete as the single-row version, so
+ * every row stays recoverable.
+ */
+export async function softDeleteMany(userId: string, ids: string[]) {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('assignments')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('user_id', userId)
+    .in('id', ids)
+    .is('deleted_at', null);
+
+  if (error) throw new RepositoryError('assignments.softDeleteMany', error);
+
+  await revalidate(AFFECTS_ASSIGNMENTS);
+}
+
 /** Re-issues the update with deleted_at null, which is what the toast's Undo does. */
 export async function restoreAssignment(userId: string, id: string) {
   const supabase = await createClient();
@@ -153,6 +173,21 @@ export async function restoreAssignment(userId: string, id: string) {
     .eq('id', id);
 
   if (error) throw new RepositoryError('assignments.restore', error);
+
+  await revalidate(AFFECTS_ASSIGNMENTS);
+}
+
+/** Bulk restore for the Clear toast's Undo. */
+export async function restoreMany(userId: string, ids: string[]) {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('assignments')
+    .update({ deleted_at: null })
+    .eq('user_id', userId)
+    .in('id', ids);
+
+  if (error) throw new RepositoryError('assignments.restoreMany', error);
 
   await revalidate(AFFECTS_ASSIGNMENTS);
 }

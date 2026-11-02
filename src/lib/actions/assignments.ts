@@ -4,12 +4,14 @@ import { z } from 'zod';
 import { requireUserOrThrow } from '@/lib/supabase/auth';
 import { RepositoryError } from '@/lib/supabase/errors';
 import { ASSIGNMENT_PRIORITIES, ASSIGNMENT_STATUSES } from '@/lib/constants';
-import { assignmentStatusSchema, idParam } from '@/lib/validation/wire';
+import { assignmentStatusSchema, idListSchema, idParam } from '@/lib/validation/wire';
 import {
   changeStatus as changeStatusRepo,
   createAssignment,
   restoreAssignment,
+  restoreMany,
   softDeleteAssignment,
+  softDeleteMany,
   updateAssignment,
 } from '@/lib/repositories/assignments';
 import type { AssignmentStatus } from '@/types/domain';
@@ -150,6 +152,40 @@ export async function undoDeleteAssignmentAction(id: string): Promise<ActionStat
   } catch (error) {
     if (error instanceof RepositoryError) {
       return { ok: false, message: 'Could not restore the assignment.' };
+    }
+    throw error;
+  }
+}
+
+/** Clears a batch of finished assignments — the ids the Done column showed. */
+export async function clearFinishedAssignmentsAction(ids: string[]): Promise<ActionState> {
+  const parsedIds = idListSchema.safeParse(ids);
+  if (!parsedIds.success) return { ok: false, message: 'Missing assignment ids.' };
+
+  try {
+    const user = await requireUserOrThrow();
+    await softDeleteMany(user.id, parsedIds.data);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof RepositoryError) {
+      return { ok: false, message: 'Could not clear finished assignments.' };
+    }
+    throw error;
+  }
+}
+
+/** The Clear toast's Undo: puts the whole batch back in one statement. */
+export async function undoClearAssignmentsAction(ids: string[]): Promise<ActionState> {
+  const parsedIds = idListSchema.safeParse(ids);
+  if (!parsedIds.success) return { ok: false, message: 'Missing assignment ids.' };
+
+  try {
+    const user = await requireUserOrThrow();
+    await restoreMany(user.id, parsedIds.data);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof RepositoryError) {
+      return { ok: false, message: 'Could not restore the assignments.' };
     }
     throw error;
   }

@@ -18,6 +18,9 @@ export const idSchema = z.string().trim().min(1, 'Missing id').max(64, 'Invalid 
 
 export const optionalIdSchema = idSchema.nullable();
 
+/** Bulk actions pass a whole column of ids at once; the cap bounds the query. */
+export const idListSchema = z.array(idSchema).min(1).max(200);
+
 export const currencySchema = z.enum(CURRENCIES);
 
 /** `assignments.status` and `.priority` are free text; only these are written. */

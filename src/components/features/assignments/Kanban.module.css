@@ -27,6 +27,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-2);
 }
 
 .column__title {
@@ -37,6 +38,25 @@
 .column__count {
   font-size: var(--text-label);
   color: var(--muted);
+}
+
+/* Text-only so it reads as a column affordance rather than a third title. */
+.column__clear {
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: var(--text-label);
+  color: var(--muted);
+  cursor: pointer;
+  transition: color var(--transition);
+}
+
+.column__clear:hover,
+.column__clear:focus-visible {
+  /* `--destructive`, not `--danger`: this is a destructive action, and
+     `--danger` inverts to teal in the light theme (see primitives.css). */
+  color: var(--destructive);
 }
 
 .card {

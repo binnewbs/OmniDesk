@@ -84,10 +84,13 @@ export function KanbanColumn({
   status,
   assignments,
   onOpen,
+  onClear,
 }: {
   status: AssignmentStatus;
   assignments: Assignment[];
   onOpen: (assignment: Assignment) => void;
+  /** Only the Done column gets one; the board decides who may clear. */
+  onClear?: () => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
 
@@ -99,6 +102,17 @@ export function KanbanColumn({
     >
       <header className={s.column__header}>
         <h2 className={s.column__title}>{status}</h2>
+        {/* Hidden while empty: a Clear with nothing to clear is noise. */}
+        {onClear && assignments.length > 0 && (
+          <button
+            type="button"
+            className={s.column__clear}
+            onClick={onClear}
+            aria-label={`Clear ${assignments.length} finished assignments`}
+          >
+            Clear
+          </button>
+        )}
         <span className={s.column__count}>{assignments.length}</span>
       </header>
 

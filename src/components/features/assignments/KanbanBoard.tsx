@@ -21,9 +21,11 @@ interface KanbanBoardProps {
    */
   onStatusChange: (id: string, status: AssignmentStatus) => void;
   onOpen: (assignment: Assignment) => void;
+  /** The ids the Done column is currently showing; the parent decides the rest. */
+  onClearDone: (ids: string[]) => void;
 }
 
-export function KanbanBoard({ assignments, onStatusChange, onOpen }: KanbanBoardProps) {
+export function KanbanBoard({ assignments, onStatusChange, onOpen, onClearDone }: KanbanBoardProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const { show } = useToast();
 
@@ -90,6 +92,13 @@ export function KanbanBoard({ assignments, onStatusChange, onOpen }: KanbanBoard
             status={status}
             assignments={byStatus(status)}
             onOpen={onOpen}
+            // Only Done can be cleared, and only with the cards it is showing —
+            // `byStatus` is already scoped to the parent's active filters.
+            onClear={
+              status === 'Done'
+                ? () => onClearDone(byStatus('Done').map((a) => a.id))
+                : undefined
+            }
           />
         ))}
       </div>
