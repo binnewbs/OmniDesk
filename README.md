@@ -6,7 +6,7 @@
 ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20Auth%20%2B%20Storage-3FCF8E?logo=supabase&logoColor=white)
 ![Vitest 3](https://img.shields.io/badge/Vitest-3-729B1B?logo=vitest&logoColor=white)
 
-A dark-mode student productivity app covering **Cashflow, Assignments, Schedule and Notes**, tied together by a dashboard. Email/password auth, row-level security per user, and a light theme behind a toggle.
+A student productivity app covering **Cashflow, Assignments, Schedule and Notes**, tied together by a dashboard. Email/password auth, row-level security per user, and a light theme behind a toggle.
 
 Next.js 16 (App Router) · React 19 · TypeScript · vanilla CSS (CSS Modules) · Supabase (Postgres + Auth + Storage)
 
