@@ -1,11 +1,13 @@
 /* tokens.css — the single source of color and scale.
    Every hex in the app comes from here. Nothing else declares a raw color.
 
-   Two themes, one set of token *names*. Dark lives on `:root` and is the
-   default (the design spec in UI_DESIGN.md §1 is dark-only); light overrides
-   the same names on `[data-theme='light']`, which the inline script in the root
-   layout sets before the first paint. Components never branch on the theme —
-   they read the tokens and get the right color for free. */
+   Two themes, one set of token *names*. Dark lives on `:root` as the base
+   palette (the design spec in UI_DESIGN.md §1 is dark-only); light overrides
+   the same names on `[data-theme='light']`. Light is the shipped default: the
+   root layout renders `data-theme="light"` on <html>, and the inline script in
+   that layout flips it to `dark` before the first paint only for a user who
+   chose dark. Components never branch on the theme — they read the tokens and
+   get the right color for free. */
 
 :root {
   color-scheme: dark; /* native selects, checkboxes and scrollbars go dark */

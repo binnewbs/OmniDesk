@@ -72,14 +72,20 @@ export function writeSidebar(state: SidebarState): void {
 /**
  * Runs before the first paint. Every read is guarded because localStorage
  * throws in some privacy modes, and a blocked read must leave the app on the
- * dark default rather than a half-applied theme.
+ * light default rather than a half-applied theme.
+ *
+ * The server already renders `data-theme="light"`, so this script only has to
+ * override it: it writes `dark` for a user who chose dark and `light` for
+ * everyone else. The attribute is set unconditionally, outside the try, so even
+ * a blocked localStorage still leaves an explicit theme on <html> rather than
+ * falling back to the stylesheet's base palette.
  *
  * Written as a single self-invoking function and inlined into <head>: an
  * external script would be fetched and parsed first, which is a round trip the
  * user would see as a flash.
  */
-export const preferencesScript = `(function(){var d=document.documentElement;try{if(localStorage.getItem(${JSON.stringify(
+export const preferencesScript = `(function(){var d=document.documentElement;var t="light";try{if(localStorage.getItem(${JSON.stringify(
   THEME_KEY,
-)})==="light")d.setAttribute("data-theme","light")}catch(e){}try{var c=localStorage.getItem(${JSON.stringify(
+)})==="dark")t="dark"}catch(e){}d.setAttribute("data-theme",t);try{var c=localStorage.getItem(${JSON.stringify(
   SIDEBAR_KEY,
 )});d.setAttribute("data-sidebar",c==="collapsed"||(c!=="expanded"&&window.innerWidth<=${SIDEBAR_AUTO_COLLAPSE_PX})?"collapsed":"expanded")}catch(e){}})()`;

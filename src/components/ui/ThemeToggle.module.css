@@ -13,11 +13,13 @@
    mode: while dark is active the row offers light (sun + "Light mode"), and
    while light is active it offers dark (moon + "Dark mode").
 
-   The *default* rules are the dark case, not a neutral fallback. The root
-   layout's inline script only writes `data-theme` when the stored theme is
-   light, so in dark mode <html> carries no attribute at all and these defaults
-   are what apply. Declaring `.moon { display: none }` here is what stops both
-   icons from rendering at once — the grid would otherwise stack them. */
+   The unscoped rules below are the dark case: they apply whenever the
+   attribute is not `light` — `data-theme="dark"`, or no attribute at all —
+   which matches the stylesheet's dark base palette. Light is what ships (the
+   root layout renders `data-theme="light"`), so in practice the
+   `[data-theme='light']` rules below are the ones that run. Declaring
+   `.moon { display: none }` here is what stops both icons from rendering at
+   once — the grid would otherwise stack them. */
 .moon,
 .toDark { display: none; }
 

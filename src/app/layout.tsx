@@ -52,15 +52,20 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    // `suppressHydrationWarning` because the script below writes `data-theme`
-    // and `data-sidebar` onto this element before React hydrates and compares
-    // attributes. The server's markup is correct on its own; these two only add
-    // the user's saved choices.
-    <html lang="en" className={dmSans.variable} suppressHydrationWarning>
+    // `data-theme="light"` is the shipped default: light mode is what a first
+    // visit renders, straight from the server HTML, with no script needed to get
+    // there. `suppressHydrationWarning` because the script below may rewrite
+    // `data-theme` (a returning dark-mode user) and writes `data-sidebar` onto
+    // this element before React hydrates and compares attributes. The server's
+    // markup is correct on its own; these only replace it with the user's saved
+    // choices.
+    <html lang="en" className={dmSans.variable} data-theme="light" suppressHydrationWarning>
       <head>
         {/* Applies the saved theme and sidebar state before the first paint, so
-            a light-mode user never sees a dark frame. Rendered here rather than
-            in a client component so it is part of the server HTML. */}
+            a dark-mode user never sees a light frame — and, because the server
+            already renders `data-theme="light"`, a first-time visitor never sees
+            a dark one. Rendered here rather than in a client component so it is
+            part of the server HTML. */}
         <script dangerouslySetInnerHTML={{ __html: preferencesScript }} />
       </head>
       <body>{children}</body>

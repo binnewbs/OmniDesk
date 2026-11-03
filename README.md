@@ -6,7 +6,7 @@
 ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20Auth%20%2B%20Storage-3FCF8E?logo=supabase&logoColor=white)
 ![Vitest 3](https://img.shields.io/badge/Vitest-3-729B1B?logo=vitest&logoColor=white)
 
-A student productivity app covering **Cashflow, Assignments, Schedule and Notes**, tied together by a dashboard. Email/password auth, row-level security per user, and a light theme behind a toggle.
+A student productivity app covering **Cashflow, Assignments, Schedule and Notes**, tied together by a dashboard. Email/password auth, row-level security per user, and a dark theme behind a toggle.
 
 Next.js 16 (App Router) · React 19 · TypeScript · vanilla CSS (CSS Modules) · Supabase (Postgres + Auth + Storage)
 
@@ -60,7 +60,7 @@ Next.js 16 (App Router) · React 19 · TypeScript · vanilla CSS (CSS Modules) �
 ### Account & theming
 
 - Email/password signup with a confirmation link, password recovery, a profile-setup step (avatar upload + bio), and a profile page for username, photo and bio.
-- Dark theme by default with a **light theme toggle**; the choice lives in `localStorage` and is applied by an inline script before first paint, so there is no flash.
+- Light theme by default with a **dark theme toggle**; the choice lives in `localStorage` and is applied by an inline script before first paint, so there is no flash.
 - Dates are bucketed in the viewer's timezone, which is detected in the browser and carried to the server in a `tz` cookie.
 
 ---
