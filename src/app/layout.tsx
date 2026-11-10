@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { DM_Sans } from 'next/font/google';
 import { preferencesScript } from '@/lib/preferences';
+import { ServiceWorkerRegistrar } from '@/components/shell/ServiceWorkerRegistrar';
 import '@/styles/globals.css';
 
 const dmSans = DM_Sans({
@@ -12,7 +13,15 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: 'OmniDesk',
+  applicationName: 'OmniDesk',
   description: 'Track income, expenses, assignments, classes and notes in one place.',
+  // Installed iOS web apps ignore the manifest's `display` on older Safari, but
+  // honour these meta tags, which is what makes the home-screen launch standalone.
+  appleWebApp: {
+    capable: true,
+    title: 'OmniDesk',
+    statusBarStyle: 'default',
+  },
   /*
    * The favicon is declared here rather than as an `app/icon.svg` file because it
    * needs per-theme colours, which a single file-based icon cannot express.
@@ -34,7 +43,7 @@ export const metadata: Metadata = {
       { url: '/favicon-dark.svg', type: 'image/svg+xml', media: '(prefers-color-scheme: dark)' },
     ],
     shortcut: '/favicon.ico',
-    apple: '/favicon.ico',
+    apple: '/icons/apple-touch-icon.png',
   },
 };
 
@@ -68,7 +77,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             part of the server HTML. */}
         <script dangerouslySetInnerHTML={{ __html: preferencesScript }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <ServiceWorkerRegistrar />
+        {children}
+      </body>
     </html>
   );
 }
