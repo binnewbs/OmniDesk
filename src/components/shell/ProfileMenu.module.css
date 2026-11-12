@@ -1,0 +1,129 @@
+/* Anchors the popover to the trigger row. */
+.wrap {
+  position: relative;
+  width: 100%;
+}
+
+.trigger:hover {
+  background: var(--nav-active);
+  color: var(--text);
+}
+
+/* `flex: 1` pushes the ellipsis to the far right, opposite the avatar. */
+.username {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-muted);
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.more {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--muted);
+}
+
+/* Sits above the trigger, because the trigger is the last row of the rail and
+   there is no room below it. Width follows the rail's content box; `min-width`
+   takes over once the rail is collapsed and that box is only the avatar. */
+.panel {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  width: 100%;
+  min-width: 200px;
+  padding: var(--space-1);
+  background: var(--surface);
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-input);
+  animation: panelIn 120ms ease;
+}
+
+.item:hover {
+  background: var(--nav-active);
+  color: var(--text);
+}
+
+.divider {
+  height: 1px;
+  margin: var(--space-1) 0;
+  background: var(--row-divider);
+}
+
+.signOut {
+  font-weight: 500;
+  color: var(--destructive);
+}
+.signOut:hover {
+  background: var(--destructive-soft);
+  color: var(--destructive);
+}
+
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Collapsed rail -----------------------------------------------------
+   Collapsed, the trigger keeps only its 32px avatar, so the username moves to
+   the visually-hidden box and the ellipsis is dropped. The panel is the
+   exception: it exists to be readable, so its rows keep their labels and left
+   alignment even while the rail is icon-only. */
+:global([data-sidebar='collapsed']) .trigger {
+  justify-content: center;
+  padding-inline: 0;
+}
+:global([data-sidebar='collapsed']) .more { display: none; }
+:global([data-sidebar='collapsed']) .username {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+:global([data-sidebar='collapsed']) .panel { min-width: 210px; }
+/* Undoes Sidebar.module.css's generic collapsed `.railRow` centering, which
+   would otherwise centre every row in the popover too. */
+:global([data-sidebar='collapsed']) .panel :global(.railRow) {
+  justify-content: flex-start;
+  padding-inline: var(--space-3);
+}
+
+/* Same collapsed baseline for the tablet rail, before the explicit expand
+   override below — mirrors Sidebar.module.css. */
+@media (max-width: 1024px) {
+  .trigger { justify-content: center; padding-inline: 0; }
+  .more { display: none; }
+  .username {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .panel { min-width: 210px; }
+  .panel :global(.railRow) {
+    justify-content: flex-start;
+    padding-inline: var(--space-3);
+  }
+}
+
+/* A real expand, at any width, restores the full row. */
+:global([data-sidebar='expanded']) .trigger {
+  justify-content: flex-start;
+  padding-inline: var(--space-3);
+}
+:global([data-sidebar='expanded']) .more { display: block; }
+:global([data-sidebar='expanded']) .username {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+}

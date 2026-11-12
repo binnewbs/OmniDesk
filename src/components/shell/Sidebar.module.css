@@ -16,8 +16,10 @@
      bottom of the screen instead of the bottom of the content. */
   height: 100%;
   min-height: 0;
-  /* Only scrolls if the nav genuinely overflows a very short viewport. */
-  overflow-y: auto;
+  /* Not a scroll container: the profile menu is an absolutely positioned
+     popover, and `overflow-y: auto` would also force `overflow-x: auto`, which
+     clipped it as soon as the rail was collapsed. `.nav` scrolls instead. */
+  overflow: visible;
   border-right: 1px solid var(--border);
   padding: var(--space-6) var(--space-4);
   display: flex;
@@ -63,9 +65,14 @@
   flex-direction: column;
   gap: var(--space-1);
   width: 100%;
+  /* Owns the rail's scroll now that `.sidebar` cannot clip the popover. The
+     footer keeps `margin-top: auto`, so it stays pinned while this area scrolls
+     on a viewport too short for the list. */
+  overflow-y: auto;
+  min-height: 0;
 }
 
-/* Nav items share `.railRow` with the footer, so the whole rail is one
+/* Nav items share `.railRow` with the profile trigger, so the whole rail is one
    horizontal rhythm: same height, same 12px side padding, same 12px icon gap,
    same 8px radius. */
 .navItem:hover { color: var(--text); }
@@ -88,41 +95,14 @@
   width: 100%;
 }
 
-/* The username is 13px rather than the row's 14px because it is supporting text
-   about a person, not a destination — the size difference is the only thing
-   separating it from the nav items, and it is what the original rail did. */
-.profileLink:hover { background: var(--nav-active); }
-
-.username {
-  font-size: var(--text-muted);
-  color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ---- Sign out ----
-   Geometry comes from `.railRow`; only the colour is specific. */
-.signOut {
-  font-weight: 500;
-  /* Destructive, so it is the one control in the rail that is not muted. The
-     icon sits inside `.railLead`, which inherits `currentColor`, keeping the
-     logo and the label the same red. */
-  color: var(--destructive);
-}
-.signOut:hover { background: var(--destructive-soft); color: var(--destructive); }
-
-.signOutLabel {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 /* Confirmation dialog styling lives with SignOutDialog. */
 
 /* ---- Collapsed ---------------------------------------------------------
    Labels are moved out of the flow rather than `display: none`, so they stay
-   in the accessibility tree and the transition has something to animate. */
+   in the accessibility tree and the transition has something to animate.
+   The profile trigger's own collapsed rules live in ProfileMenu.module.css,
+   because the menu panel must keep its labels readable while the rail is
+   icon-only. */
 [data-sidebar='collapsed'] .sidebar {
   width: var(--sidebar-w-collapsed);
   padding-inline: var(--space-3);
@@ -130,19 +110,7 @@
 }
 [data-sidebar='collapsed'] .head { justify-content: center; }
 [data-sidebar='collapsed'] .brand { display: none; }
-/* Every label in the rail, collapsed to the same 1px visually-hidden box so
-   they stay in the accessibility tree. `.navLabel`, `.username` and
-   `.signOutLabel` are this module's; the theme toggle's label belongs to another
-   module, so it is matched by a structural selector — the last child of a
-   `.railRow` is always the label — rather than by name.
-
-   `.railRow` must be wrapped in `:global()`. A bare `.railRow` here would be
-   scoped and hashed to this module, matching nothing at runtime and silently
-   disabling the collapsed state. */
-[data-sidebar='collapsed'] .navLabel,
-[data-sidebar='collapsed'] .username,
-[data-sidebar='collapsed'] .signOutLabel,
-[data-sidebar='collapsed'] :global(.railRow) > :last-child {
+[data-sidebar='collapsed'] .navLabel {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -150,6 +118,10 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+/* `.railRow` must be wrapped in `:global()`. A bare `.railRow` here would be
+   scoped and hashed to this module, matching nothing at runtime and silently
+   disabling the collapsed state. ProfileMenu.module.css overrides this for the
+   popover's rows, which must stay left-aligned. */
 [data-sidebar='collapsed'] :global(.railRow) {
   justify-content: center;
   padding-inline: 0;
@@ -167,10 +139,7 @@
   }
   .head { justify-content: center; }
   .brand { display: none; }
-  .navLabel,
-  .username,
-  .signOutLabel,
-  :global(.railRow) > :last-child {
+  .navLabel {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -191,10 +160,7 @@
    `block` here would outrank `.brandLockup` and collapse the mark and wordmark
    onto one line. This rule exists to undo the `display: none` above. */
 [data-sidebar='expanded'] .brand { display: inline-flex; }
-[data-sidebar='expanded'] .navLabel,
-[data-sidebar='expanded'] .username,
-[data-sidebar='expanded'] .signOutLabel,
-[data-sidebar='expanded'] :global(.railRow) > :last-child {
+[data-sidebar='expanded'] .navLabel {
   position: static;
   width: auto;
   height: auto;

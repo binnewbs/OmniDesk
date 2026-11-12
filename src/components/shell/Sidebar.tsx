@@ -1,17 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { NAV_ITEMS } from '@/lib/constants';
-import { Avatar } from '@/components/ui/Avatar';
 import { BrandLockup } from '@/components/ui/BrandLockup';
 import { Icon } from '@/components/ui/Icon';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { useModal } from '@/hooks/useModal';
 import { useSidebarState } from '@/hooks/useSidebarState';
 import { NAV_ICONS } from './navIcons';
-import { SignOutDialog } from './SignOutDialog';
+import { ProfileMenu } from './ProfileMenu';
 import s from './Sidebar.module.css';
 
 interface SidebarProps {
@@ -21,7 +18,6 @@ interface SidebarProps {
 
 export function Sidebar({ username, avatar }: SidebarProps) {
   const pathname = usePathname();
-  const confirm = useModal();
 
   // The stored state lives in localStorage, which the server cannot read, so
   // the first render is always the expanded default and the real value lands on
@@ -76,41 +72,12 @@ export function Sidebar({ username, avatar }: SidebarProps) {
         })}
       </ul>
 
-      {/* The footer is three rows of the same shape — `.railRow` with a
-          `.railLead` in front — so the rail reads as one aligned list. The
-          profile row sits between the two actions because it identifies who is
-          signed in, which is what those two actions act on. */}
+      {/* One row, not three. The profile row identifies who is signed in, and
+          the theme switch and sign out act on that person — so they live behind
+          the profile rather than competing with the navigation above them. */}
       <div className={s.footer}>
-        <Link
-          href="/profile"
-          className={`railRow ${s.profileLink}`}
-          title={username ?? 'Profile'}
-        >
-          <span className="railLead">
-            <Avatar src={avatar} name={username} size={32} />
-          </span>
-          <span className={s.username}>{username ?? 'Profile'}</span>
-        </Link>
-
-        <ThemeToggle />
-
-        <button
-          type="button"
-          className={`railRow ${s.signOut}`}
-          onClick={confirm.show}
-          title="Sign out"
-        >
-          <span className="railLead">
-            <Icon icon={LogOut} />
-          </span>
-          <span className={s.signOutLabel}>Sign out</span>
-        </button>
+        <ProfileMenu username={username} avatar={avatar} />
       </div>
-
-      {/* Signing out is destructive and the click is easy to make by accident on
-          a rail this narrow, so it asks first. The same dialog is used by the
-          mobile account sheet. */}
-      <SignOutDialog open={confirm.open} onClose={confirm.hide} />
     </nav>
   );
 }
